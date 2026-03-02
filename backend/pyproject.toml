@@ -1,0 +1,16 @@
+[project]
+name = "sawahsense-backend"
+version = "0.1.0"
+description = "FastAPI Backend for SawahSense"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic",
+    "earthengine-api",
+    "fastapi",
+    "httpx",
+    "pydantic",
+    "python-dotenv",
+    "twilio",
+    "uvicorn"
+]
