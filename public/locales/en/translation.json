@@ -1,0 +1,143 @@
+{
+  "common": {
+    "appName": "SawahSense",
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "critical": "Critical",
+    "info": "Info",
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "all": "All",
+    "demo": "Demo",
+    "live": "Live",
+    "demoMode": "Demo Mode",
+    "liveMode": "Live Data"
+  },
+  "nav": {
+    "allFields": "All Fields",
+    "notifications": "Notifications",
+    "account": "Account",
+    "langToggle": "EN | BM"
+  },
+  "stages": {
+    "establishment": "Establishment",
+    "tillering": "Tillering",
+    "panicleInit": "Panicle Initiation",
+    "heading": "Heading",
+    "grainFill": "Grain Filling",
+    "maturation": "Maturation",
+    "harvest": "Harvest",
+    "day": "Day"
+  },
+  "indices": {
+    "ndvi": "NDVI",
+    "evi": "EVI",
+    "lswi": "LSWI",
+    "ndviDesc": "Vegetation Greenness",
+    "eviDesc": "Canopy Health",
+    "lswiDesc": "Water Content",
+    "opacity": "Opacity"
+  },
+  "sidebar": {
+    "fields": "My Fields",
+    "tasks": "My Tasks",
+    "alerts": "Alerts",
+    "pakTani": "Pak Tani",
+    "addField": "Add New Field",
+    "addTask": "Create Task",
+    "noFields": "No fields. Add a new field on the map.",
+    "noTasks": "No tasks. Create tasks from alerts.",
+    "noAlerts": "All fields are healthy!"
+  },
+  "fields": {
+    "location": "Location",
+    "area": "Area",
+    "variety": "Variety",
+    "transplantDate": "Transplanting Date",
+    "currentStage": "Current Stage",
+    "latestIndices": "Latest Indices",
+    "hectares": "hectares",
+    "viewOnMap": "View on Map"
+  },
+  "alerts": {
+    "eviDrop": "EVI dropped {{percent}}% in {{days}} days",
+    "lswiLow": "Field water level dropping — check irrigation channel",
+    "ndviLow": "NDVI too low during {{stage}}",
+    "cloudGap": "No satellite data — cloudy weather",
+    "eviBelowStage": "Growth slower than expected this season",
+    "viewOnMap": "View on Map",
+    "createTask": "Create Task",
+    "yesterday": "Yesterday",
+    "daysAgo": "{{days}} days ago",
+    "justNow": "Just now"
+  },
+  "tasks": {
+    "pending": "Pending",
+    "completed": "Completed",
+    "markDone": "Mark as Done",
+    "markPending": "Mark as Pending",
+    "sendWhatsApp": "Send WhatsApp to...",
+    "tomorrow": "Tomorrow",
+    "today": "Today",
+    "newTask": "New Task",
+    "taskTitle": "Task Title",
+    "taskField": "Related Field",
+    "taskDue": "Due Date",
+    "taskTime": "Time"
+  },
+  "pakTani": {
+    "title": "Pak Tani",
+    "subtitle": "Your Agricultural Advisor",
+    "activeField": "Active field",
+    "selectField": "Select field",
+    "ask": "Ask Pak Tani...",
+    "send": "Send",
+    "suggestedQuestions": "Common Questions",
+    "loadingInsight": "Pak Tani is reading your field data...",
+    "greeting": "Welcome! Select a field to get advice.",
+    "askMoreContext": "Ask more →",
+    "noConnection": "Cannot reach Pak Tani right now.",
+    "fieldContext": "Field Context"
+  },
+  "gdd": {
+    "harvest": "Estimated Harvest",
+    "daysRemaining": "~{{days}} days left",
+    "predictedDate": "{{date}}",
+    "gddProgress": "{{current}}/{{target}} GDD",
+    "target": "Target: 1100 GDD",
+    "loading": "Calculating GDD..."
+  },
+  "whatsapp": {
+    "send": "Send WhatsApp",
+    "sent": "Message sent ✓",
+    "sending": "Sending...",
+    "recipientName": "Recipient Name",
+    "phoneNumber": "Phone Number",
+    "includeCountryCode": "(include country code +60)",
+    "dispatchMessage": "{{name}}, please inspect {{field}} today. {{alert}} Focus on areas showing the biggest changes.",
+    "error": "Failed to send message"
+  },
+  "map": {
+    "drawField": "Draw new field boundary",
+    "clickToSelect": "Click a field to view information",
+    "heatmapToggle": "Toggle heatmap layer",
+    "noData": "No data"
+  },
+  "bottomPanel": {
+    "indexHistory": "Index History",
+    "selectDate": "Select date",
+    "cloudCover": "Cloud cover",
+    "cloudy": "Cloudy",
+    "clear": "Clear",
+    "noField": "Select a field to view index history",
+    "last120Days": "Last 120 Days",
+    "fullSeason": "Full Season"
+  }
+}

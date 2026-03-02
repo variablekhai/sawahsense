@@ -1,0 +1,143 @@
+{
+  "common": {
+    "appName": "SawahSense",
+    "healthy": "Sihat",
+    "warning": "Amaran",
+    "critical": "Kritikal",
+    "info": "Maklumat",
+    "loading": "Memuatkan...",
+    "error": "Ralat",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "confirm": "Sahkan",
+    "delete": "Padam",
+    "edit": "Edit",
+    "view": "Lihat",
+    "all": "Semua",
+    "demo": "Demo",
+    "live": "Langsung",
+    "demoMode": "Mod Demo",
+    "liveMode": "Data Langsung"
+  },
+  "nav": {
+    "allFields": "Semua Ladang",
+    "notifications": "Pemberitahuan",
+    "account": "Akaun",
+    "langToggle": "BM | EN"
+  },
+  "stages": {
+    "establishment": "Penanaman",
+    "tillering": "Anakan",
+    "panicleInit": "Permulaan Malai",
+    "heading": "Pembungaan",
+    "grainFill": "Pengisian Butir",
+    "maturation": "Kematangan",
+    "harvest": "Menuai",
+    "day": "Hari"
+  },
+  "indices": {
+    "ndvi": "NDVI",
+    "evi": "EVI",
+    "lswi": "LSWI",
+    "ndviDesc": "Kehijauan Tanaman",
+    "eviDesc": "Kesihatan Kanopi",
+    "lswiDesc": "Kandungan Air",
+    "opacity": "Ketebalan"
+  },
+  "sidebar": {
+    "fields": "Ladang Saya",
+    "tasks": "Tugas Saya",
+    "alerts": "Amaran",
+    "pakTani": "Pak Tani",
+    "addField": "Tambah Ladang Baru",
+    "addTask": "Buat Tugas",
+    "noFields": "Tiada ladang. Tambah ladang baharu di peta.",
+    "noTasks": "Tiada tugas. Buat tugas daripada amaran.",
+    "noAlerts": "Semua ladang dalam keadaan baik!"
+  },
+  "fields": {
+    "location": "Lokasi",
+    "area": "Keluasan",
+    "variety": "Varieti",
+    "transplantDate": "Tarikh Tanam",
+    "currentStage": "Peringkat Semasa",
+    "latestIndices": "Indeks Terbaru",
+    "hectares": "hektar",
+    "viewOnMap": "Lihat di Peta"
+  },
+  "alerts": {
+    "eviDrop": "EVI menurun {{percent}}% dalam {{days}} hari",
+    "lswiLow": "Paras air ladang menurun — semak saluran irigasi",
+    "ndviLow": "NDVI terlalu rendah semasa {{stage}}",
+    "cloudGap": "Data satelit tidak tersedia — cuaca mendung",
+    "eviBelowStage": "Pertumbuhan lebih perlahan dari jangkaan",
+    "viewOnMap": "Lihat di Peta",
+    "createTask": "Buat Tugas",
+    "yesterday": "Semalam",
+    "daysAgo": "{{days}} hari lepas",
+    "justNow": "Baru sahaja"
+  },
+  "tasks": {
+    "pending": "Belum selesai",
+    "completed": "Selesai",
+    "markDone": "Tandakan Selesai",
+    "markPending": "Tandakan Belum Selesai",
+    "sendWhatsApp": "Hantar WhatsApp kepada...",
+    "tomorrow": "Esok",
+    "today": "Hari ini",
+    "newTask": "Tugas Baharu",
+    "taskTitle": "Nama Tugas",
+    "taskField": "Ladang Berkaitan",
+    "taskDue": "Tarikh Perlu Siap",
+    "taskTime": "Masa"
+  },
+  "pakTani": {
+    "title": "Pak Tani",
+    "subtitle": "Penasihat Pertanian Anda",
+    "activeField": "Ladang aktif",
+    "selectField": "Pilih ladang",
+    "ask": "Tanya Pak Tani...",
+    "send": "Hantar",
+    "suggestedQuestions": "Soalan Biasa",
+    "loadingInsight": "Pak Tani sedang membaca data ladang anda...",
+    "greeting": "Selamat datang! Pilih ladang untuk mendapat nasihat.",
+    "askMoreContext": "Tanya lebih lanjut →",
+    "noConnection": "Tidak dapat menghubungi Pak Tani sekarang.",
+    "fieldContext": "Konteks Ladang"
+  },
+  "gdd": {
+    "harvest": "Jangkaan Menuai",
+    "daysRemaining": "~{{days}} hari lagi",
+    "predictedDate": "{{date}}",
+    "gddProgress": "{{current}}/{{target}} GDD",
+    "target": "Sasaran: 1100 GDD",
+    "loading": "Mengira GDD..."
+  },
+  "whatsapp": {
+    "send": "Hantar WhatsApp",
+    "sent": "Mesej dihantar ✓",
+    "sending": "Menghantar...",
+    "recipientName": "Nama Penerima",
+    "phoneNumber": "Nombor Telefon",
+    "includeCountryCode": "(termasuk kod negara +60)",
+    "dispatchMessage": "{{name}}, sila pergi semak {{field}} hari ini. {{alert}} Fokus kawasan yang menunjukkan perubahan terbesar.",
+    "error": "Gagal menghantar mesej"
+  },
+  "map": {
+    "drawField": "Lukis sempadan ladang baru",
+    "clickToSelect": "Klik ladang untuk melihat maklumat",
+    "heatmapToggle": "Tukar lapisan heatmap",
+    "noData": "Tiada data"
+  },
+  "bottomPanel": {
+    "indexHistory": "Sejarah Indeks",
+    "selectDate": "Pilih tarikh",
+    "cloudCover": "Litupan awan",
+    "cloudy": "Mendung",
+    "clear": "Cerah",
+    "noField": "Pilih ladang untuk melihat sejarah indeks",
+    "last120Days": "120 Hari Terakhir",
+    "fullSeason": "Musim Penuh"
+  }
+}

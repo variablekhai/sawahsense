@@ -1,26 +1,336 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core backgrounds */
+  --bg-base: #0d1117;
+  --bg-surface: #161b22;
+  --bg-elevated: #21262d;
+
+  /* Borders */
+  --border: #30363d;
+  --border-subtle: #21262d;
+
+  /* Text */
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+
+  /* Accents */
+  --accent-green: #3fb950;
+  --accent-green-dim: #1a4a23;
+  --accent-yellow: #d29922;
+  --accent-yellow-dim: #3d2e00;
+  --accent-red: #f85149;
+  --accent-red-dim: #3d1414;
+  --accent-blue: #58a6ff;
+  --accent-blue-dim: #1a2f4a;
+  --accent-teal: #39d353;
+  --accent-purple: #bc8cff;
+
+  /* Index heatmap scales */
+  --ndvi-low: #d73027;
+  --ndvi-mid: #fee08b;
+  --ndvi-high: #1a9850;
+  --evi-low: #f46d43;
+  --evi-high: #74c476;
+  --lswi-low: #fff7bc;
+  --lswi-high: #2171b5;
+
+  /* Spacing */
+  --sidebar-width: 320px;
+  --navbar-height: 48px;
+  --bottom-panel-height: 280px;
+  --bottom-panel-min: 40px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: "IBM Plex Sans", sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Font utilities */
+.font-syne {
+  font-family: "Syne", sans-serif;
+}
+.font-mono {
+  font-family: "IBM Plex Mono", monospace;
+}
+.font-sans-body {
+  font-family: "IBM Plex Sans", sans-serif;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  background: #0d1117;
+  font-family: "IBM Plex Sans", sans-serif;
+}
+
+.leaflet-control-attribution {
+  background: rgba(13, 17, 23, 0.8) !important;
+  color: var(--text-muted) !important;
+  font-size: 9px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-secondary) !important;
+}
+
+.leaflet-draw-toolbar a,
+.leaflet-draw-actions li a {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.leaflet-draw-toolbar a:hover,
+.leaflet-draw-actions li a:hover {
+  background-color: var(--bg-elevated) !important;
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+  line-height: 26px !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-surface) !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface) 25%,
+    var(--bg-elevated) 50%,
+    var(--bg-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Alert level colors */
+.alert-critical {
+  color: var(--accent-red);
+}
+.alert-warning {
+  color: var(--accent-yellow);
+}
+.alert-healthy {
+  color: var(--accent-green);
+}
+.alert-info {
+  color: var(--accent-blue);
+}
+
+/* Border colors */
+.border-critical {
+  border-color: var(--accent-red) !important;
+}
+.border-warning {
+  border-color: var(--accent-yellow) !important;
+}
+.border-healthy {
+  border-color: var(--accent-green) !important;
+}
+
+/* Panel transitions */
+.panel-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Input styles */
+input,
+textarea,
+select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 0 2px rgba(63, 185, 80, 0.1);
+}
+
+/* Button base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Recharts tooltip */
+.recharts-tooltip-wrapper {
+  z-index: 9999;
+}
+
+/* Fix leaflet z-index conflicts */
+.leaflet-pane {
+  z-index: 400;
+}
+.leaflet-overlay-pane {
+  z-index: 400;
+}
+.leaflet-shadow-pane {
+  z-index: 500;
+}
+.leaflet-marker-pane {
+  z-index: 600;
+}
+.leaflet-tooltip-pane {
+  z-index: 650;
+}
+.leaflet-popup-pane {
+  z-index: 700;
+}
+.leaflet-map-pane canvas {
+  z-index: 100;
+}
+.leaflet-map-pane svg {
+  z-index: 200;
+}
+.leaflet-control {
+  z-index: 800;
 }

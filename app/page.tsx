@@ -1,65 +1,248 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+import { useState, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
+import Navbar from "../src/components/Navbar";
+import Sidebar from "../src/components/Sidebar/Sidebar";
+import PakTaniAmbientCard from "../src/components/Map/PakTaniAmbientCard";
+import BottomPanel from "../src/components/BottomPanel/BottomPanel";
+import { getFieldsSortedByAlert } from "../src/data/demoFields";
+import { usePakTani } from "../src/hooks/usePakTani";
+import type { Field } from "../src/types";
+
+// Dynamic import for map (SSR incompatible)
+const MapContainer = dynamic(
+  () => import("../src/components/Map/MapContainer"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          background: "#0d1117",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              border: "2px solid var(--accent-green)",
+              borderTopColor: "transparent",
+              margin: "0 auto 12px",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+          <p
+            style={{
+              fontFamily: "IBM Plex Mono, monospace",
+              fontSize: "0.6875rem",
+              color: "var(--text-muted)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            MEMUATKAN PETA...
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </div>
+    ),
+  },
+);
+
+type TabId = "fields" | "tasks" | "alerts" | "pakTani";
+
+export default function Home() {
+  const [lang, setLang] = useState<"ms" | "en">("ms");
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>("fields");
+  const [activeIndex, setActiveIndex] = useState<"NDVI" | "EVI" | "LSWI">(
+    "NDVI",
+  );
+  const [ambientField, setAmbientField] = useState<any>(null);
+  const [dataSource] = useState<"live" | "demo">("demo");
+
+  // Extra fields from user-drawn polygons
+  const [userFields, setUserFields] = useState<Field[]>([]);
+
+  const baseFields = getFieldsSortedByAlert() as Field[];
+  const fields: Field[] = [...baseFields, ...userFields];
+  const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
+
+  const {
+    messages: pakTaniMessages,
+    loading: pakTaniLoading,
+    insightLoading: pakTaniInsightLoading,
+    loadFieldInsight,
+    sendMessage: pakTaniSend,
+    clearConversation,
+  } = usePakTani();
+
+  const alertCount = fields.filter((f) => f.alertLevel !== "healthy").length;
+
+  const handleFieldSelect = useCallback(
+    (fieldId: string | null) => {
+      setSelectedFieldId(fieldId);
+      const field = fields.find((f) => f.id === fieldId);
+      if (field?.activeAlert) {
+        setAmbientField(field);
+      }
+    },
+    [fields],
+  );
+
+  const handleAmbientCardTrigger = useCallback((field: any) => {
+    setAmbientField(field);
+  }, []);
+
+  const handleLoadInsight = useCallback(() => {
+    if (selectedField) {
+      loadFieldInsight(selectedField);
+    }
+  }, [selectedField, loadFieldInsight]);
+
+  const handleTabChange = useCallback(
+    (tab: TabId) => {
+      setActiveTab(tab);
+      if (tab === "pakTani" && selectedField) {
+        loadFieldInsight(selectedField);
+      }
+    },
+    [selectedField, loadFieldInsight],
+  );
+
+  const handlePakTaniSend = useCallback(
+    (msg: string) => {
+      if (selectedField) {
+        pakTaniSend(msg, selectedField, pakTaniMessages);
+      }
+    },
+    [selectedField, pakTaniMessages, pakTaniSend],
+  );
+
+  const handleOpenFullPanel = useCallback(() => {
+    setActiveTab("pakTani");
+    if (selectedField) loadFieldInsight(selectedField);
+  }, [selectedField, loadFieldInsight]);
+
+  useEffect(() => {
+    clearConversation();
+  }, [selectedFieldId, clearConversation]);
+
+  // Handle user adding a new field from drawn polygon
+  const handleFieldAdd = useCallback((draft: Partial<Field>) => {
+    const id = `user_${Date.now()}`;
+    const newField: Field = {
+      id,
+      name: draft.name || "Ladang Baru",
+      location: draft.location || "Sekinchan, Selangor",
+      geometry: draft.geometry || { type: "Polygon", coordinates: [[]] },
+      centroid: (draft.centroid as [number, number]) || [3.481, 101.027],
+      transplantingDate: new Date().toISOString().split("T")[0],
+      alertLevel: "healthy",
+      latestIndices: { ndvi: 0.45, evi: 0.38, lswi: 0.25 },
+      areaHa: (draft as any).areaHa,
+      variety: (draft as any).variety || "MR263",
+      timeSeries: [],
+    };
+    setUserFields((prev) => [...prev, newField]);
+    setSelectedFieldId(id);
+    setActiveTab("fields");
+  }, []);
+
+  const sidebarWidth = 320;
+
+  return (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        background: "var(--bg-base)",
+      }}
+    >
+      {/* Navbar */}
+      <Navbar
+        selectedFieldName={selectedField?.name || null}
+        alertCount={alertCount}
+        lang={lang}
+        onLangToggle={() => setLang((l) => (l === "ms" ? "en" : "ms"))}
+        onAlertClick={() => handleTabChange("alerts")}
+      />
+
+      {/* Sidebar */}
+      <Sidebar
+        fields={fields}
+        selectedFieldId={selectedFieldId}
+        onFieldSelect={(id) => handleFieldSelect(id)}
+        lang={lang}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        pakTaniMessages={pakTaniMessages}
+        pakTaniLoading={pakTaniLoading}
+        pakTaniInsightLoading={pakTaniInsightLoading}
+        onPakTaniSend={handlePakTaniSend}
+        onLoadInsight={handleLoadInsight}
+      />
+
+      {/* Main map area */}
+      <div
+        style={{
+          position: "fixed",
+          top: "var(--navbar-height)",
+          left: `${sidebarWidth}px`,
+          right: 0,
+          bottom: 0,
+        }}
+      >
+        <MapContainer
+          fields={fields}
+          selectedFieldId={selectedFieldId}
+          onFieldSelect={handleFieldSelect}
+          onFieldAdd={handleFieldAdd}
+          activeIndex={activeIndex}
+          onActiveIndexChange={setActiveIndex}
+          lang={lang}
+          onAmbientCardTrigger={handleAmbientCardTrigger}
+        />
+
+        {/* Pak Tani Ambient Card */}
+        {ambientField && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "104px",
+              left: "16px",
+              zIndex: 900,
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <PakTaniAmbientCard
+              field={ambientField}
+              insight={
+                (
+                  pakTaniMessages as Array<{ role: string; content: string }>
+                ).find((m) => m.role === "assistant")?.content || null
+              }
+              loading={pakTaniInsightLoading}
+              onDismiss={() => setAmbientField(null)}
+              onOpenFullPanel={handleOpenFullPanel}
+              lang={lang}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Panel */}
+      <BottomPanel
+        selectedField={selectedField}
+        source={dataSource}
+        lang={lang}
+        sidebarWidth={sidebarWidth}
+      />
     </div>
   );
 }
