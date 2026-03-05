@@ -45,6 +45,10 @@ interface MapContainerProps {
   bottomOffset?: number;
   /** Imperative ref so the sidebar/parent can trigger draw mode */
   startDrawingRef?: React.MutableRefObject<(() => void) | null>;
+  /** Imperative ref so the sidebar/parent can cancel drawing mode */
+  cancelDrawingRef?: React.MutableRefObject<(() => void) | null>;
+  /** Inform parent/sidebar when field-adding flow is active */
+  onAddFieldStateChange?: (isAdding: boolean) => void;
   /** Initial map center — defaults to first field centroid */
   initialCenter?: [number, number];
 }
@@ -590,6 +594,8 @@ export default function MapContainer({
   selectedDate,
   bottomOffset = 40,
   startDrawingRef,
+  cancelDrawingRef,
+  onAddFieldStateChange,
   initialCenter = [3.481, 101.0268],
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -597,7 +603,7 @@ export default function MapContainer({
   const polygonsRef = useRef<Map<string, any>>(new Map());
   const markersRef = useRef<Map<string, any>>(new Map());
   const overlaysRef = useRef<Map<string, any>>(new Map());
-  const drawControlRef = useRef<any>(null);
+  const polygonDrawHandlerRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
   const [drawMode, setDrawMode] = useState(false);
   const [newFieldDraft, setNewFieldDraft] = useState<NewFieldDraft | null>(
@@ -649,11 +655,8 @@ export default function MapContainer({
         .map((ll: any) => [ll.lat, ll.lng]);
       setNewFieldDraft({ latlngs, layer });
       setDrawMode(false);
-
-      // Disable draw handler
-      if (drawControlRef.current?._toolbars?.draw?._modes?.polygon?.handler) {
-        drawControlRef.current._toolbars.draw._modes.polygon.handler.disable();
-      }
+      polygonDrawHandlerRef.current?.disable?.();
+      polygonDrawHandlerRef.current = null;
     });
 
     map.on("draw:drawstart", () => setDrawMode(true));
@@ -727,14 +730,14 @@ export default function MapContainer({
         const marker = L.marker(field.centroid, { icon: dotIcon }).addTo(map);
 
         const tooltipHtml = `
-          <div style="font-family:'IBM Plex Sans',sans-serif;min-width:180px;">
+          <div style="font-family:'IBM Plex Sans',sans-serif;min-width:180px;max-width:420px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">
             <div style="font-weight:600;color:#e6edf3;margin-bottom:4px;font-size:0.8125rem;">${field.name}</div>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#8b949e;">
               NDVI <span style="color:#3fb950">${field.latestIndices.ndvi.toFixed(2)}</span> &nbsp;
               EVI <span style="color:#39d353">${field.latestIndices.evi.toFixed(2)}</span> &nbsp;
               LSWI <span style="color:#58a6ff">${field.latestIndices.lswi.toFixed(2)}</span>
             </div>
-            ${field.activeAlert ? `<div style="color:${alertColor};font-size:0.6875rem;margin-top:4px;">&#9651; ${lang === "ms" ? field.activeAlert.message_ms : field.activeAlert.message_en}</div>` : ""}
+            ${field.activeAlert ? `<div style="color:${alertColor};font-size:0.6875rem;margin-top:4px;line-height:1.3;">&#9651; ${lang === "ms" ? field.activeAlert.message_ms : field.activeAlert.message_en}</div>` : ""}
           </div>
         `;
 
@@ -817,17 +820,40 @@ export default function MapContainer({
       showArea: true,
       metric: true,
     });
+    polygonDrawHandlerRef.current = polygonHandler;
     polygonHandler.enable();
     setDrawMode(true);
+  }, []);
+
+  const cancelDrawing = useCallback(() => {
+    polygonDrawHandlerRef.current?.disable?.();
+    polygonDrawHandlerRef.current = null;
+
+    if (
+      mapInstanceRef.current &&
+      (mapInstanceRef.current as any)._drawnItemsLayer
+    ) {
+      (mapInstanceRef.current as any)._drawnItemsLayer.clearLayers();
+    }
+    setNewFieldDraft(null);
+    setDrawMode(false);
   }, []);
 
   // Expose startDrawing imperatively so the sidebar can trigger it
   useEffect(() => {
     if (startDrawingRef) startDrawingRef.current = startDrawing;
+    if (cancelDrawingRef) cancelDrawingRef.current = cancelDrawing;
     return () => {
       if (startDrawingRef) startDrawingRef.current = null;
+      if (cancelDrawingRef) cancelDrawingRef.current = null;
     };
-  }, [startDrawingRef, startDrawing]);
+  }, [startDrawingRef, startDrawing, cancelDrawingRef, cancelDrawing]);
+
+  const isAddingField = drawMode || !!newFieldDraft;
+
+  useEffect(() => {
+    onAddFieldStateChange?.(isAddingField);
+  }, [isAddingField, onAddFieldStateChange]);
 
   // Handle new field confirmed from modal
   const handleFieldConfirm = useCallback(
@@ -896,15 +922,8 @@ export default function MapContainer({
   );
 
   const handleFieldCancel = useCallback(() => {
-    if (
-      mapInstanceRef.current &&
-      (mapInstanceRef.current as any)._drawnItemsLayer
-    ) {
-      (mapInstanceRef.current as any)._drawnItemsLayer.clearLayers();
-    }
-    setNewFieldDraft(null);
-    setDrawMode(false);
-  }, []);
+    cancelDrawing();
+  }, [cancelDrawing]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>

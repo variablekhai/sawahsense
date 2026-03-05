@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getCurrentStage } from "../../data/stageDefinitions";
 import { getSuggestedQuestions } from "../../data/suggestedQuestions";
+import { getDemoSuggestedQuestionsForField } from "../../data/pakTaniDemoQnA";
 
 interface Message {
   role: "user" | "assistant";
@@ -95,9 +96,29 @@ export default function PakTaniTab({
   } | null;
   const daysSince = stageResult.daysSince as number;
 
-  const suggestedQs = stage
-    ? getSuggestedQuestions(stage.id, selectedField?.activeAlert?.type as any)
-    : [];
+  const lastUserMessage =
+    [...messages]
+      .reverse()
+      .find((m) => m.role === "user" && !m.isImage)?.content || "";
+  const lastAssistantMessage =
+    [...messages].reverse().find((m) => m.role === "assistant")?.content || "";
+
+  const suggestedQs = selectedField
+    ? getDemoSuggestedQuestionsForField(
+        selectedField.id,
+        lastUserMessage,
+        messages
+          .filter((m) => m.role === "user" && !m.isImage)
+          .map((m) => m.content),
+      )
+    : stage
+      ? getSuggestedQuestions(
+          stage.id,
+          selectedField?.activeAlert?.type || null,
+          lastUserMessage,
+          lastAssistantMessage,
+        )
+      : [];
 
   const handleSend = () => {
     if (!input.trim() || !selectedField) return;

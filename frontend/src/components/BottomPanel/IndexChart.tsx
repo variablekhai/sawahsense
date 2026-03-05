@@ -11,7 +11,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { getCurrentStage, STAGES } from "../../data/stageDefinitions";
+import { STAGES } from "../../data/stageDefinitions";
 
 interface DataPoint {
   date: string;
@@ -21,6 +21,16 @@ interface DataPoint {
   cloudPct: number;
 }
 
+interface ChartPoint extends DataPoint {
+  dateShort: string;
+  ndviDisplay: number | null;
+  eviDisplay: number | null;
+  lswiDisplay: number | null;
+  ndviEstimated: number | null;
+  eviEstimated: number | null;
+  lswiEstimated: number | null;
+}
+
 interface IndexChartProps {
   timeSeries: DataPoint[];
   transplantingDate: string;
@@ -28,8 +38,31 @@ interface IndexChartProps {
   lang: "ms" | "en";
 }
 
-const CustomTooltip = ({ active, payload, label, lang }: any) => {
+interface TooltipEntry {
+  name?: string;
+  value?: number | null;
+  color?: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string;
+  lang: "ms" | "en";
+}
+
+const CustomTooltip = ({ active, payload, label, lang }: CustomTooltipProps) => {
   if (!active || !payload || !payload.length) return null;
+  const tooltipPayload = payload as TooltipEntry[];
+  const payloadFiltered = tooltipPayload.filter((entry) => {
+    const isEstimated = String(entry.name || "").includes("(Est.)");
+    if (!isEstimated) return true;
+    const baseName = String(entry.name).replace(" (Est.)", "");
+    const measuredExists = tooltipPayload.some(
+      (p) => p.name === baseName && p.value !== null && p.value !== undefined,
+    );
+    return !measuredExists;
+  });
 
   return (
     <div
@@ -50,9 +83,9 @@ const CustomTooltip = ({ active, payload, label, lang }: any) => {
           color: "var(--text-secondary)",
         }}
       >
-        {label}
+        {lang === "ms" ? "Tarikh" : "Date"}: {label}
       </p>
-      {payload.map((entry: any) => (
+      {payloadFiltered.map((entry) => (
         <div
           key={entry.name}
           style={{
@@ -90,6 +123,51 @@ function getStageAtDate(transplantingDate: string, targetDate: string) {
   return STAGES.find((s) => daysSince >= s.dayStart && daysSince <= s.dayEnd);
 }
 
+function buildEstimatedSeries(
+  values: Array<number | null>,
+): Array<number | null> {
+  const estimated = Array<number | null>(values.length).fill(null);
+  let i = 0;
+
+  while (i < values.length) {
+    if (values[i] !== null) {
+      i++;
+      continue;
+    }
+
+    const gapStart = i;
+    while (i < values.length && values[i] === null) i++;
+    const gapEnd = i - 1;
+
+    const prevIdx = gapStart - 1 >= 0 ? gapStart - 1 : -1;
+    const nextIdx = i < values.length ? i : -1;
+    const prevVal = prevIdx >= 0 ? values[prevIdx] : null;
+    const nextVal = nextIdx >= 0 ? values[nextIdx] : null;
+
+    if (prevVal !== null && prevIdx >= 0) {
+      estimated[prevIdx] = prevVal;
+    }
+    if (nextVal !== null && nextIdx >= 0) {
+      estimated[nextIdx] = nextVal;
+    }
+
+    for (let k = gapStart; k <= gapEnd; k++) {
+      if (prevVal !== null && nextVal !== null && prevIdx >= 0 && nextIdx >= 0) {
+        const ratio = (k - prevIdx) / (nextIdx - prevIdx);
+        estimated[k] = prevVal + (nextVal - prevVal) * ratio;
+      } else if (prevVal !== null) {
+        estimated[k] = prevVal;
+      } else if (nextVal !== null) {
+        estimated[k] = nextVal;
+      } else {
+        estimated[k] = null;
+      }
+    }
+  }
+
+  return estimated;
+}
+
 export default function IndexChart({
   timeSeries,
   transplantingDate,
@@ -98,16 +176,28 @@ export default function IndexChart({
 }: IndexChartProps) {
   if (!timeSeries || timeSeries.length === 0) return null;
 
-  // Filter out cloudy data from chart but keep the dates for reference
-  const displayData = timeSeries.map((point) => ({
+  // Keep measured points as solid lines; fill cloudy gaps with dotted estimates.
+  const measured = timeSeries.map((point) => ({
+    ndviDisplay: point.cloudPct > 40 ? null : point.ndvi,
+    eviDisplay: point.cloudPct > 40 ? null : point.evi,
+    lswiDisplay: point.cloudPct > 40 ? null : point.lswi,
+  }));
+  const ndviEstimated = buildEstimatedSeries(measured.map((p) => p.ndviDisplay));
+  const eviEstimated = buildEstimatedSeries(measured.map((p) => p.eviDisplay));
+  const lswiEstimated = buildEstimatedSeries(measured.map((p) => p.lswiDisplay));
+
+  const displayData: ChartPoint[] = timeSeries.map((point, idx) => ({
     ...point,
     dateShort: new Date(point.date).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
     }),
-    ndviDisplay: point.cloudPct > 40 ? null : point.ndvi,
-    eviDisplay: point.cloudPct > 40 ? null : point.evi,
-    lswiDisplay: point.cloudPct > 40 ? null : point.lswi,
+    ndviDisplay: measured[idx].ndviDisplay,
+    eviDisplay: measured[idx].eviDisplay,
+    lswiDisplay: measured[idx].lswiDisplay,
+    ndviEstimated: ndviEstimated[idx],
+    eviEstimated: eviEstimated[idx],
+    lswiEstimated: lswiEstimated[idx],
   }));
 
   // Find stage transition points for reference lines
@@ -171,7 +261,7 @@ export default function IndexChart({
             strokeDasharray="3 3"
             strokeOpacity={0.5}
             label={{
-              value: t.label.slice(0, 4),
+              value: t.label,
               position: "insideTopRight",
               fill: t.color,
               fontSize: 8,
@@ -215,6 +305,17 @@ export default function IndexChart({
         />
         <Line
           type="monotone"
+          dataKey="ndviEstimated"
+          name="NDVI (Est.)"
+          stroke="#3fb950"
+          strokeWidth={1.5}
+          dot={false}
+          connectNulls={false}
+          strokeDasharray="4 4"
+          legendType="none"
+        />
+        <Line
+          type="monotone"
           dataKey="eviDisplay"
           name="EVI"
           stroke="#39d353"
@@ -225,12 +326,34 @@ export default function IndexChart({
         />
         <Line
           type="monotone"
+          dataKey="eviEstimated"
+          name="EVI (Est.)"
+          stroke="#39d353"
+          strokeWidth={1.5}
+          dot={false}
+          connectNulls={false}
+          strokeDasharray="4 4"
+          legendType="none"
+        />
+        <Line
+          type="monotone"
           dataKey="lswiDisplay"
           name="LSWI"
           stroke="#58a6ff"
           strokeWidth={1.5}
           dot={false}
           connectNulls={false}
+        />
+        <Line
+          type="monotone"
+          dataKey="lswiEstimated"
+          name="LSWI (Est.)"
+          stroke="#58a6ff"
+          strokeWidth={1.5}
+          dot={false}
+          connectNulls={false}
+          strokeDasharray="4 4"
+          legendType="none"
         />
       </LineChart>
     </ResponsiveContainer>

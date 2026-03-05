@@ -201,9 +201,9 @@ export const DEMO_FIELDS = [
     activeAlert: {
       type: "BLB_OUTBREAK",
       message_ms:
-        "Anomali NDVI/EVI dikesan di kawasan Tenggara ladang — corak bermula dari pintu air dan merebak mengikut alur irigasi mencirikan Hawar Daun Bakteria (BLB). Sekinchan pernah kehilangan 50–70% hasil akibat BLB pada 2016.",
+        "Daun padi di bahagian tenggara nampak tidak sihat. Corak ini biasa berlaku untuk Hawar Daun Bakteria (BLB). Sila semak kawasan pintu air dahulu, kemudian semak baris berdekatan.",
       message_en:
-        "NDVI/EVI anomaly detected in SE quadrant — directional spread from water inlet along irrigation rows is consistent with Bacterial Leaf Blight (BLB). Sekinchan lost 50–70% yield to BLB in 2016.",
+        "Paddy leaves in the southeast area look unhealthy. This pattern often matches Bacterial Leaf Blight (BLB). Please check near the water inlet first, then nearby rows.",
       percentDrop: 22,
       daysSpan: 5,
       detectedDate: "2025-10-20",
@@ -273,9 +273,9 @@ export const DEMO_FIELDS = [
     activeAlert: {
       type: "LSWI_LOW",
       message_ms:
-        "LSWI (indeks kelembapan) ladang turun terlalu cepat — 47% di bawah paras normal untuk peringkat pembungaan. NDVI dan EVI masih normal — tanaman kelihatan hijau tetapi sebenarnya mengalami tekanan air. Semak pintu air dan saluran masuk segera.",
+        "Air ladang nampak berkurang cepat. Walaupun daun masih hijau, pokok mungkin mula stres air. Sila semak pintu air dan saluran masuk sekarang.",
       message_en:
-        "Moisture index (LSWI) dropped sharply — 47% below expected for heading stage. NDVI/EVI still normal — crop looks healthy but is water-stressed internally. Check irrigation inlet immediately.",
+        "Field water seems to be dropping fast. Even if leaves are still green, the crop may already be under water stress. Please check the water gate and inlet now.",
       percentDrop: 47,
       detectedDate: "2025-11-04",
     },
@@ -402,9 +402,9 @@ export const DEMO_FIELDS = [
     activeAlert: {
       type: "EVI_LOW_NUTRIENT",
       message_ms:
-        "EVI ladang 17% lebih rendah daripada julat normal untuk Hari 30 peringkat anakan — corak seragam merata ladang menunjukkan kekurangan nutrien (bukan serangan perosak). Semak nisbah NPK baja basal yang digunakan.",
+        "Pertumbuhan padi lebih perlahan daripada biasa dan hampir sama di seluruh ladang. Ini biasanya tanda baja tidak cukup. Sila semak rekod baja dan tambah ikut keperluan.",
       message_en:
-        "Field EVI 17% below expected for Day 30 tillering — uniform field-wide pattern indicates nutrient deficiency (not pest). Check basal fertiliser NPK ratio. MR297 standard: 15:15:15.",
+        "Crop growth is slower than normal and looks similar across the whole field. This usually means low nutrients. Please check fertiliser records and top up as needed.",
       percentDrop: 17,
       detectedDate: "2025-10-05",
       resolvedDate: "2025-10-25",

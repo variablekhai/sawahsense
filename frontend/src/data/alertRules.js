@@ -18,8 +18,8 @@ export const ALERT_RULES = [
           type: "EVI_DROP",
           level: "critical",
           percentDrop: Math.round(dropPct),
-          message_ms: `EVI menurun ${Math.round(dropPct)}% — mungkin ada serangan atau kekurangan baja`,
-          message_en: `EVI dropped ${Math.round(dropPct)}% — possible pest attack or fertilizer deficiency`,
+          message_ms: `Bacaan tanaman turun ${Math.round(dropPct)}%. Sila semak perosak atau baja.`,
+          message_en: `Crop reading dropped ${Math.round(dropPct)}%. Please check for pests or low fertiliser.`,
         };
       }
       return null;
@@ -36,9 +36,9 @@ export const ALERT_RULES = [
           type: "NDVI_LOW_HEADING",
           level: "critical",
           message_ms:
-            "NDVI terlalu rendah semasa pembungaan — hasil mungkin terjejas",
+            "Bacaan daun rendah semasa pembungaan. Hasil mungkin turun.",
           message_en:
-            "NDVI critically low during heading — yield may be affected",
+            "Leaf reading is low during heading. Yield may drop.",
         };
       }
       return null;
@@ -59,8 +59,8 @@ export const ALERT_RULES = [
         return {
           type: "LSWI_LOW",
           level: "warning",
-          message_ms: "Paras air ladang menurun — semak saluran irigasi",
-          message_en: "Field water level dropping — check irrigation channel",
+          message_ms: "Air ladang semakin kurang. Sila semak saluran air.",
+          message_en: "Field water is dropping. Please check the irrigation line.",
         };
       }
       return null;
@@ -74,8 +74,8 @@ export const ALERT_RULES = [
         return {
           type: "EVI_BELOW_STAGE",
           level: "warning",
-          message_ms: "Pertumbuhan lebih perlahan dari jangkaan musim ini",
-          message_en: "Growth slower than expected for this season",
+          message_ms: "Pertumbuhan padi agak perlahan berbanding biasa.",
+          message_en: "Crop growth is a bit slower than usual.",
         };
       }
       return null;
@@ -93,8 +93,8 @@ export const ALERT_RULES = [
           type: "CLOUD_GAP",
           level: "info",
           days: recentCloudy * 6,
-          message_ms: `Tiada data satelit baru — cuaca mendung ${recentCloudy * 6} hari`,
-          message_en: `No new satellite data — cloudy weather for ${recentCloudy * 6} days`,
+          message_ms: `Data satelit belum dikemas kini kerana mendung ${recentCloudy * 6} hari.`,
+          message_en: `Satellite data is delayed due to cloudy weather for ${recentCloudy * 6} days.`,
         };
       }
       return null;

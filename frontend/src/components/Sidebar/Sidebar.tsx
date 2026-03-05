@@ -44,6 +44,8 @@ interface SidebarProps {
   onPakTaniSend?: (msg: string) => void;
   onLoadInsight?: () => void;
   onAddField?: () => void;
+  isAddingField?: boolean;
+  onCancelAddField?: () => void;
   tasks?: any[];
   setTasks?: any;
 }
@@ -77,6 +79,8 @@ export default function Sidebar({
   onPakTaniSend,
   onLoadInsight,
   onAddField,
+  isAddingField = false,
+  onCancelAddField,
   tasks = [],
   setTasks,
 }: SidebarProps) {
@@ -198,6 +202,8 @@ export default function Sidebar({
               onFieldSelect={onFieldSelect}
               lang={lang}
               onAddField={onAddField}
+              isAddingField={isAddingField}
+              onCancelAddField={onCancelAddField}
             />
           )}
           {activeTab === "tasks" && (

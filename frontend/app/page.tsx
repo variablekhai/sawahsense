@@ -72,6 +72,8 @@ export default function Home() {
 
   // Imperative ref so sidebar "Add Field" button can trigger map draw mode
   const startDrawingRef = useRef<(() => void) | null>(null);
+  const cancelDrawingRef = useRef<(() => void) | null>(null);
+  const [isAddingField, setIsAddingField] = useState(false);
 
   // Extra fields from user-drawn polygons
   const [userFields, setUserFields] = useState<Field[]>([]);
@@ -141,10 +143,10 @@ export default function Home() {
   const handlePakTaniSend = useCallback(
     (msg: string) => {
       if (selectedField) {
-        pakTaniSend(msg, selectedField, pakTaniMessages);
+        pakTaniSend(msg, selectedField, pakTaniMessages, lang);
       }
     },
-    [selectedField, pakTaniMessages, pakTaniSend],
+    [selectedField, pakTaniMessages, pakTaniSend, lang],
   );
 
   const handleOpenFullPanel = useCallback(() => {
@@ -211,6 +213,8 @@ export default function Home() {
         onPakTaniSend={handlePakTaniSend}
         onLoadInsight={handleLoadInsight}
         onAddField={() => startDrawingRef.current?.()}
+        isAddingField={isAddingField}
+        onCancelAddField={() => cancelDrawingRef.current?.()}
         tasks={tasks}
         setTasks={setTasks}
       />
@@ -237,6 +241,8 @@ export default function Home() {
           selectedDate={selectedDate}
           bottomOffset={panelHeight}
           startDrawingRef={startDrawingRef}
+          cancelDrawingRef={cancelDrawingRef}
+          onAddFieldStateChange={setIsAddingField}
           initialCenter={fields[0]?.centroid ?? [3.481, 101.0268]}
         />
 

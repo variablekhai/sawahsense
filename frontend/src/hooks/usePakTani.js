@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { getCurrentStage } from "../data/stageDefinitions";
+import { getDemoAnswerForField } from "../data/pakTaniDemoQnA";
 
 const insightCache = new Map(); // Cache per fieldId per day
 
@@ -16,6 +17,15 @@ export function usePakTani(onAddTask) {
   const [insightLoading, setInsightLoading] = useState(false);
   const [error, setError] = useState(null);
   const abortRef = useRef(null);
+
+  const t = useCallback((lang, ms, en) => (lang === "en" ? en : ms), []);
+
+  const detectLang = useCallback((explicitLang, text = "") => {
+    if (explicitLang === "ms" || explicitLang === "en") return explicitLang;
+    const q = text.toLowerCase();
+    const enHints = ["what", "how", "when", "can you", "please", "why"];
+    return enHints.some((w) => q.includes(w)) ? "en" : "ms";
+  }, []);
 
   /**
    * Load the initial insight for a field (shown when Pak Tani tab opens or ambient card fires)
@@ -97,8 +107,9 @@ export function usePakTani(onAddTask) {
    * Send a follow-up message to Pak Tani
    */
   const sendMessage = useCallback(
-    async (userMessage, field, existingMessages) => {
+    async (userMessage, field, existingMessages, lang = "ms") => {
       if (!userMessage.trim()) return;
+      const currentLang = detectLang(lang, userMessage);
 
       const { stage, daysSince } = getCurrentStage(
         field?.transplantingDate || "",
@@ -134,7 +145,14 @@ export function usePakTani(onAddTask) {
         const newHistory = [...updatedMessages, imageMsg];
         setMessages([
           ...newHistory,
-          { role: "assistant", content: "Menganalisis imej..." },
+          {
+            role: "assistant",
+            content: t(
+              currentLang,
+              "Menganalisis imej...",
+              "Analyzing image...",
+            ),
+          },
         ]);
         setLoading(true);
         setError(null);
@@ -144,10 +162,10 @@ export function usePakTani(onAddTask) {
         let responseText = "";
         if (type === "healthy") {
           responseText =
-            "Berdasarkan gambar, warna rumput/padi kelihatan sangat hijau dan sihat. Tiada tanda-tanda penyakit daun atau kerosakan perosak dikesan. Kanopi tumbuhan tumbuh dengan padat dan mekar secara seragam. Teruskan amalan pengurusan ladang semasa anda.";
+            "Daripada gambar ini, padi nampak sihat dan sekata. Tiada tanda jelas penyakit pada daun. Teruskan penjagaan seperti biasa dan semak semula dalam 3-5 hari.";
         } else {
           responseText =
-            'Berdasarkan gambar, terdapat kerosakan teruk pada hujung dan tepi daun yang berubah menjadi kuning keputihan dan kering memanjang (lesions). Ini adalah simptom klasik **Hawar Daun Bakteria (Bacterial Leaf Blight - BLB)**. Jangkitan kelihatan aktif.\n\nAdakah anda mahu saya sediakan tugasan (task) "Scouting" untuk pengesahan lanjut?';
+            'Daripada gambar ini, ada tanda penyakit daun yang kuat. Ini mungkin **Hawar Daun Bakteria (BLB)**.\n\nCadangan cepat:\n1. Semak sudut ladang yang paling teruk dulu.\n2. Asingkan aliran air jika boleh.\n3. Rujuk pegawai pertanian berdekatan.\n\nMahu saya buat tugasan "Scouting" untuk anda?';
         }
 
         setMessages([
@@ -159,6 +177,123 @@ export function usePakTani(onAddTask) {
       }
 
       const msgLower = userMessage.toLowerCase();
+
+      // Direct task creation path for task-request questions in demo flow.
+      const asksTaskCreation =
+        (msgLower.includes("tugas") || msgLower.includes("task")) &&
+        (msgLower.includes("buat") ||
+          msgLower.includes("create") ||
+          msgLower.includes("add") ||
+          msgLower.includes("tambah"));
+      if (asksTaskCreation && field && onAddTask) {
+        const newHistory = [
+          ...updatedMessages,
+          { role: "user", content: userMessage },
+        ];
+        setMessages([
+          ...newHistory,
+          {
+            role: "assistant",
+            content: t(
+              currentLang,
+              "Membuat tugasan sekarang...",
+              "Creating task now...",
+            ),
+          },
+        ]);
+        setLoading(true);
+        setError(null);
+
+        await new Promise((r) => setTimeout(r, 700));
+
+        const { stage: rawStage } = getCurrentStage(field?.transplantingDate || "");
+        const stageMy = rawStage?.nameMy || "";
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dueDateMs = tomorrow.toLocaleDateString("ms-MY", {
+          weekday: "long",
+          day: "numeric",
+          month: "short",
+        });
+        const dueDateEn = tomorrow.toLocaleDateString("en-GB", {
+          weekday: "long",
+          day: "numeric",
+          month: "short",
+        });
+
+        let title = `Urus ${field?.name}`;
+        if (field?.activeAlert?.type === "BLB_OUTBREAK")
+          title = `Scouting & Semburan BLB (${field?.name})`;
+        if (field?.activeAlert?.type === "LSWI_LOW")
+          title = `Pemeriksaan Pintu Air (${field?.name})`;
+        else if (field?.activeAlert?.type === "EVI_LOW_NUTRIENT")
+          title = `Semak Baja NPK (${field?.name})`;
+
+        onAddTask({
+          id: `t_paktani_${Date.now()}`,
+          title,
+          fieldId: field?.id || "f1",
+          fieldName: field?.name || "Ladang",
+          dueDate: currentLang === "en" ? dueDateEn : dueDateMs,
+          dueTime: currentLang === "en" ? "8:00 AM" : "08:00 pagi",
+          status: "pending",
+          alertMessage:
+            currentLang === "en"
+              ? field?.activeAlert?.message_en
+              : field?.activeAlert?.message_ms,
+          stage: stageMy,
+          ndviValue: field?.latestIndices?.ndvi,
+          eviValue: field?.latestIndices?.evi,
+        });
+
+        setMessages([
+          ...newHistory,
+          {
+            role: "assistant",
+            content: t(
+              currentLang,
+              "Siap, tugasan sudah ditambah dalam tab Tugas. Jika mahu, saya boleh beri checklist ringkas untuk kerja lapangan.",
+              "Done, the task has been added in the Tasks tab. If you want, I can also give a short field checklist.",
+            ),
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
+
+      // Complete scripted QnA flow for demo fields (with citations in answers)
+      if (field?.id) {
+        const scriptedAnswer = getDemoAnswerForField(field.id, userMessage);
+        if (scriptedAnswer) {
+          const newHistory = [
+            ...updatedMessages,
+            { role: "user", content: userMessage },
+          ];
+          setMessages([
+            ...newHistory,
+            {
+              role: "assistant",
+              content: t(
+                currentLang,
+                "Mencari jawapan rujukan demo...",
+                "Finding answer from demo references...",
+              ),
+            },
+          ]);
+          setLoading(true);
+          setError(null);
+
+          await new Promise((r) => setTimeout(r, 900));
+
+          setMessages([
+            ...newHistory,
+            { role: "assistant", content: scriptedAnswer },
+          ]);
+          setLoading(false);
+          return;
+        }
+      }
+
       const isAdviceMatch =
         msgLower.includes("advice") ||
         msgLower.includes("nasihat") ||
@@ -175,7 +310,14 @@ export function usePakTani(onAddTask) {
         ];
         setMessages([
           ...newHistory,
-          { role: "assistant", content: "Mencari maklumat rujukan..." },
+          {
+            role: "assistant",
+            content: t(
+              currentLang,
+              "Mencari maklumat rujukan...",
+              "Looking up reference guidance...",
+            ),
+          },
         ]);
         setLoading(true);
         setError(null);
@@ -184,28 +326,22 @@ export function usePakTani(onAddTask) {
 
         let adviceResponse = "";
         if (field.activeAlert.type === "BLB_OUTBREAK") {
-          adviceResponse = `Berdasarkan keadaan ladang anda, berikut adalah tindakan segera yang perlu diambil:
-1. Keringkan ladang perlahan-lahan untuk mengurangkan kelembapan.
-2. Hentikan pembajaan nitrogen serta-merta kerana ia menggalakkan penyebaran jangkitan.
-3. Sapukan racun perosak berasaskan tembaga (copper) mengikut kadar yang ditetapkan.
+          adviceResponse = `Saya faham keadaan ini merisaukan. Kita buat langkah mudah dulu:
+1. Pergi ke kawasan yang paling kuning dahulu.
+2. Kurangkan air bertakung jika boleh.
+3. Tangguh baja daun buat sementara.
+4. Jika makin merebak, terus hubungi pegawai pertanian.
 
-📚 **Sumber Rujukan (RAG):**
-* *Panduan Pengurusan Penyakit Padi, Jabatan Pertanian (ms. 24)*
-* *Garis Panduan Pengawalan BLB, Bernas 2024*
-
-Adakah anda ingin saya buatkan senarai tugasan (task) untuk tindakan "Scouting & Semburan"?`;
+Mahu saya buatkan tugasan "Scouting & Semburan" supaya senang ikut langkah?`;
         } else if (field.activeAlert.type === "LSWI_LOW") {
-          adviceResponse = `Berdasarkan bacaan LSWI yang rendah, berikut adalah nasihat pakar:
-1. Lakukan pemeriksaan segera ke atas saluran paip sekunder dan pintu air ladang.
-2. Pastikan tiada halangan fizikal seperti rumput atau bendasing.
-3. Tingkatkan kadar aliran air masuk untuk peringkat pembungaan (memerlukan 30% lebih air).
+          adviceResponse = `Nampak tanda air tidak cukup. Langkah cepat:
+1. Semak pintu air dan saluran masuk sekarang.
+2. Buang halangan seperti rumput atau sampah.
+3. Tambah aliran air perlahan-lahan.
 
-📚 **Sumber Rujukan (RAG):**
-* *Manual Pengairan Tanaman Padi, IADA (SOP 3.1)*
-
-Adakah anda mahu saya tambahkan "Pemeriksaan Pintu Air" ke dalam senarai tugas?`;
+Mahu saya tambah tugasan "Pemeriksaan Pintu Air" ke senarai tugas anda?`;
         } else {
-          adviceResponse = `Untuk menangani isu ini, rujuk manual penanaman standard.\n\n📚 **SOP IADA Barat Laut Selangor**\n\nMahu saya siapkan tugasan (task) rawatan?`;
+          adviceResponse = `Ada perubahan pada ladang anda. Cadangan saya: semak kawasan yang paling lemah dulu dan ambil gambar untuk rujukan.\n\nMahu saya siapkan tugasan rawatan untuk anda?`;
         }
 
         setMessages([
@@ -242,7 +378,11 @@ Adakah anda mahu saya tambahkan "Pemeriksaan Pintu Air" ke dalam senarai tugas?`
             ...newHistory,
             {
               role: "assistant",
-              content: "Menambah tugasan ke dalam senarai...",
+              content: t(
+                currentLang,
+                "Menambah tugasan ke dalam senarai...",
+                "Adding task to your list...",
+              ),
             },
           ]);
           setLoading(true);
@@ -277,9 +417,12 @@ Adakah anda mahu saya tambahkan "Pemeriksaan Pintu Air" ke dalam senarai tugas?`
               fieldId: field?.id || "f1",
               fieldName: field?.name || "Ladang",
               dueDate: dateStr,
-              dueTime: "08:00 pagi",
+              dueTime: currentLang === "en" ? "8:00 AM" : "08:00 pagi",
               status: "pending",
-              alertMessage: field?.activeAlert?.message_ms,
+              alertMessage:
+                currentLang === "en"
+                  ? field?.activeAlert?.message_en
+                  : field?.activeAlert?.message_ms,
               stage: stageMy,
               ndviValue: field?.latestIndices?.ndvi,
               eviValue: field?.latestIndices?.evi,
@@ -290,8 +433,11 @@ Adakah anda mahu saya tambahkan "Pemeriksaan Pintu Air" ke dalam senarai tugas?`
             ...newHistory,
             {
               role: "assistant",
-              content:
+              content: t(
+                currentLang,
                 "Selesai! Tugasan telah ditambah ke senarai tugas (Tasks) anda. Boleh semak tab **Tugas** di bahagian menu amaran.",
+                "Done! The task has been added to your Tasks list. Please check the **Tasks** tab.",
+              ),
             },
           ]);
           setLoading(false);
@@ -348,7 +494,11 @@ Adakah anda mahu saya tambahkan "Pemeriksaan Pintu Air" ke dalam senarai tugas?`
             {
               role: "assistant",
               content:
-                "Maaf, saya tidak dapat menjawab sekarang. Cuba lagi sebentar.",
+                t(
+                  currentLang,
+                  "Maaf, saya tidak dapat menjawab sekarang. Cuba lagi sebentar.",
+                  "Sorry, I can’t answer right now. Please try again shortly.",
+                ),
             },
           ]);
         }
@@ -356,7 +506,7 @@ Adakah anda mahu saya tambahkan "Pemeriksaan Pintu Air" ke dalam senarai tugas?`
 
       setLoading(false);
     },
-    [],
+    [detectLang, onAddTask, t],
   );
 
   const clearConversation = useCallback(() => {

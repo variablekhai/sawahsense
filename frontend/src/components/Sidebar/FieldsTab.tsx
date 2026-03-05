@@ -25,6 +25,8 @@ interface FieldsTabProps {
   onFieldSelect: (id: string) => void;
   lang: "ms" | "en";
   onAddField?: () => void;
+  isAddingField?: boolean;
+  onCancelAddField?: () => void;
 }
 
 const ALERT_COLORS = {
@@ -45,6 +47,8 @@ export default function FieldsTab({
   onFieldSelect,
   lang,
   onAddField,
+  isAddingField = false,
+  onCancelAddField,
 }: FieldsTabProps) {
   // Sort: Critical → Warning → Healthy
   const sorted = [...fields].sort((a, b) => {
@@ -269,15 +273,35 @@ export default function FieldsTab({
           flexShrink: 0,
         }}
       >
+        {isAddingField && (
+          <div
+            style={{
+              marginBottom: "8px",
+              padding: "6px 8px",
+              border: "1px solid var(--accent-green)40",
+              background: "var(--accent-green-dim)",
+              borderRadius: "6px",
+              color: "var(--accent-green)",
+              fontSize: "0.75rem",
+              fontFamily: "IBM Plex Sans, sans-serif",
+            }}
+          >
+            {lang === "ms"
+              ? "Sedang tambah ladang: lukis sempadan di peta atau batal."
+              : "Adding field: draw a boundary on the map or cancel."}
+          </div>
+        )}
         <button
-          onClick={onAddField}
+          onClick={isAddingField ? onCancelAddField : onAddField}
           style={{
             width: "100%",
             padding: "8px",
-            background: "transparent",
-            border: "1px dashed var(--border)",
+            background: isAddingField ? "var(--accent-red-dim)" : "transparent",
+            border: isAddingField
+              ? "1px solid var(--accent-red)"
+              : "1px dashed var(--border)",
             borderRadius: "8px",
-            color: "var(--text-secondary)",
+            color: isAddingField ? "var(--accent-red)" : "var(--text-secondary)",
             fontSize: "0.8125rem",
             fontFamily: "IBM Plex Sans, sans-serif",
             cursor: "pointer",
@@ -288,20 +312,30 @@ export default function FieldsTab({
             gap: "6px",
           }}
           onMouseEnter={(e) => {
+            if (isAddingField) return;
             (e.currentTarget as HTMLButtonElement).style.borderColor =
               "var(--accent-green)";
             (e.currentTarget as HTMLButtonElement).style.color =
               "var(--accent-green)";
           }}
           onMouseLeave={(e) => {
+            if (isAddingField) return;
             (e.currentTarget as HTMLButtonElement).style.borderColor =
               "var(--border)";
             (e.currentTarget as HTMLButtonElement).style.color =
               "var(--text-secondary)";
           }}
         >
-          <span>+</span>
-          <span>{lang === "ms" ? "Tambah Ladang Baru" : "Add New Field"}</span>
+          <span>{isAddingField ? "×" : "+"}</span>
+          <span>
+            {isAddingField
+              ? lang === "ms"
+                ? "Batal Tambah Ladang"
+                : "Cancel Adding Field"
+              : lang === "ms"
+                ? "Tambah Ladang Baru"
+                : "Add New Field"}
+          </span>
         </button>
       </div>
     </div>
