@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, Send, RotateCcw, Wheat, Circle } from "lucide-react";
+import {
+  ChevronDown,
+  Send,
+  RotateCcw,
+  Wheat,
+  Circle,
+  Camera,
+} from "lucide-react";
 import { getCurrentStage } from "../../data/stageDefinitions";
 import { getSuggestedQuestions } from "../../data/suggestedQuestions";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  isImage?: boolean;
+  imageUrl?: string;
 }
 
 interface Field {
@@ -49,7 +58,22 @@ export default function PakTaniTab({
 }: PakTaniTabProps) {
   const [input, setInput] = useState("");
   const [showFieldSelector, setShowFieldSelector] = useState(false);
+  const [showImageMenu, setShowImageMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleSimulateImageUpload = (type: "healthy" | "blb") => {
+    setShowImageMenu(false);
+    onSend(`[IMAGE_UPLOAD:${type}]`);
+  };
+
+  const renderRichText = (text: string) => {
+    return text.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i}>{part.slice(2, -2)}</strong>;
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -376,7 +400,7 @@ export default function PakTaniTab({
                     whiteSpace: "pre-wrap",
                   }}
                 >
-                  {msg.content}
+                  {renderRichText(msg.content)}
                   {loading && i === messages.length - 1 && (
                     <span
                       style={{
@@ -412,6 +436,20 @@ export default function PakTaniTab({
                       fontFamily: "IBM Plex Sans, sans-serif",
                     }}
                   >
+                    {msg.isImage && msg.imageUrl && (
+                      <img
+                        src={msg.imageUrl}
+                        alt="Uploaded crop"
+                        style={{
+                          width: "100%",
+                          borderRadius: "4px",
+                          marginBottom: "8px",
+                          display: "block",
+                          objectFit: "cover",
+                          maxHeight: "150px",
+                        }}
+                      />
+                    )}
                     {msg.content}
                   </p>
                 </div>
@@ -485,6 +523,81 @@ export default function PakTaniTab({
       </div>
 
       {/* Input bar */}
+      <div style={{ position: "relative" }}>
+        {showImageMenu && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "100%",
+              left: "14px",
+              marginBottom: "8px",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "8px",
+              padding: "4px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "2px",
+              boxShadow: "0 8px 16px rgba(0,0,0,0.5)",
+              zIndex: 100,
+            }}
+          >
+            <button
+              onClick={() => handleSimulateImageUpload("healthy")}
+              style={{
+                padding: "8px 12px",
+                background: "none",
+                border: "none",
+                color: "var(--text-primary)",
+                fontSize: "0.75rem",
+                fontFamily: "IBM Plex Sans, sans-serif",
+                cursor: "pointer",
+                textAlign: "left",
+                borderRadius: "4px",
+              }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.background =
+                  "var(--bg-elevated)")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.background =
+                  "none")
+              }
+            >
+              {lang === "ms"
+                ? "📷 Muat naik status hijau/sihat"
+                : "📷 Upload healthy crop"}
+            </button>
+            <button
+              onClick={() => handleSimulateImageUpload("blb")}
+              style={{
+                padding: "8px 12px",
+                background: "none",
+                border: "none",
+                color: "var(--text-primary)",
+                fontSize: "0.75rem",
+                fontFamily: "IBM Plex Sans, sans-serif",
+                cursor: "pointer",
+                textAlign: "left",
+                borderRadius: "4px",
+              }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.background =
+                  "var(--bg-elevated)")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.background =
+                  "none")
+              }
+            >
+              {lang === "ms"
+                ? "📷 Muat naik sampel BLB"
+                : "📷 Upload BLB sample"}
+            </button>
+          </div>
+        )}
+      </div>
+
       <div
         style={{
           padding: "10px 14px",
@@ -495,6 +608,25 @@ export default function PakTaniTab({
           alignItems: "center",
         }}
       >
+        <button
+          onClick={() => setShowImageMenu(!showImageMenu)}
+          disabled={!selectedField || loading}
+          title={lang === "ms" ? "Muat naik imej" : "Upload image"}
+          style={{
+            background: "transparent",
+            border: "none",
+            cursor: !selectedField || loading ? "not-allowed" : "pointer",
+            padding: "8px",
+            color: showImageMenu ? "var(--accent-green)" : "var(--text-muted)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: !selectedField ? 0.5 : 1,
+            transition: "color 0.15s ease",
+          }}
+        >
+          <Camera size={16} />
+        </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CheckSquare, Square, MessageCircle, Plus, X } from "lucide-react";
 import { getCurrentStage } from "../../data/stageDefinitions";
 
-interface Task {
+export interface Task {
   id: string;
   title: string;
   fieldId: string;
@@ -24,15 +24,26 @@ interface WhatsAppModalProps {
   lang: "ms" | "en";
 }
 
+const FARMERS = [
+  { name: "Ahmad (Petak A)", phone: "+60123456781" },
+  { name: "Ali (Petak B)", phone: "+60123456782" },
+  { name: "Abu (Petak C)", phone: "+60123456783" },
+  { name: "Chong (Petak D)", phone: "+60123456784" },
+  { name: "Muthu (Petak E)", phone: "+60123456785" },
+  { name: "Siti (Petak F)", phone: "+60123456786" },
+];
+
 function WhatsAppModal({ task, onClose, lang }: WhatsAppModalProps) {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("+60");
+  const [selectedFarmerIndex, setSelectedFarmerIndex] = useState<number | "">(
+    "",
+  );
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
   const handleSend = async () => {
-    if (!name || !phone) return;
+    if (selectedFarmerIndex === "") return;
+    const farmer = FARMERS[selectedFarmerIndex];
     setSending(true);
     setError("");
     try {
@@ -40,8 +51,8 @@ function WhatsAppModal({ task, onClose, lang }: WhatsAppModalProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          recipientName: name,
-          phoneNumber: phone,
+          recipientName: farmer.name,
+          phoneNumber: farmer.phone,
           fieldName: task.fieldName,
           alertMessage: task.alertMessage,
           eviValue: task.eviValue,
@@ -52,7 +63,7 @@ function WhatsAppModal({ task, onClose, lang }: WhatsAppModalProps) {
       });
       if (res.ok) {
         setSent(true);
-        setTimeout(onClose, 1500);
+        setTimeout(onClose, 2500);
       } else {
         setError(
           lang === "ms" ? "Gagal menghantar mesej" : "Failed to send message",
@@ -141,33 +152,35 @@ function WhatsAppModal({ task, onClose, lang }: WhatsAppModalProps) {
                 marginBottom: "4px",
               }}
             >
-              {lang === "ms" ? "Nama Penerima" : "Recipient Name"}
+              {lang === "ms" ? "Pilih Petani" : "Select Farmer"}
             </label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={lang === "ms" ? "cth: Ahmad" : "e.g. Ahmad"}
-              style={{ width: "100%", boxSizing: "border-box" }}
-            />
-          </div>
-          <div>
-            <label
+            <select
+              value={selectedFarmerIndex}
+              onChange={(e) =>
+                setSelectedFarmerIndex(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
               style={{
-                fontSize: "0.75rem",
-                color: "var(--text-secondary)",
+                width: "100%",
+                padding: "8px",
+                borderRadius: "6px",
+                border: "1px solid var(--border)",
+                background: "var(--bg-base)",
+                color: "var(--text-primary)",
                 fontFamily: "IBM Plex Sans, sans-serif",
-                display: "block",
-                marginBottom: "4px",
+                fontSize: "0.875rem",
               }}
             >
-              {lang === "ms" ? "Nombor Telefon (+60)" : "Phone Number (+60)"}
-            </label>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+60123456789"
-              style={{ width: "100%", boxSizing: "border-box" }}
-            />
+              <option value="">
+                {lang === "ms" ? "-- Pilih Petani --" : "-- Select Farmer --"}
+              </option>
+              {FARMERS.map((f, i) => (
+                <option key={i} value={i}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -186,7 +199,7 @@ function WhatsAppModal({ task, onClose, lang }: WhatsAppModalProps) {
 
         <button
           onClick={handleSend}
-          disabled={sending || !name || !phone}
+          disabled={sending || selectedFarmerIndex === ""}
           style={{
             width: "100%",
             marginTop: "16px",
@@ -205,13 +218,14 @@ function WhatsAppModal({ task, onClose, lang }: WhatsAppModalProps) {
             alignItems: "center",
             justifyContent: "center",
             gap: "6px",
+            textAlign: "center",
           }}
         >
           <MessageCircle size={14} />
           {sent
             ? lang === "ms"
-              ? "✓ Mesej Dihantar"
-              : "✓ Message Sent"
+              ? "Tugas Dihantar!"
+              : "Tasks Sent!"
             : sending
               ? lang === "ms"
                 ? "Menghantar..."
@@ -235,48 +249,18 @@ interface Field {
 }
 
 interface TasksTabProps {
-  fields: Field[];
   selectedField: Field | null;
   lang: "ms" | "en";
+  tasks: Task[];
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
 export default function TasksTab({
-  fields,
   selectedField,
   lang,
+  tasks,
+  setTasks,
 }: TasksTabProps) {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    // Seed with tasks from active alerts
-    const seeded: Task[] = [];
-    for (const field of fields) {
-      if (field.activeAlert) {
-        const { stage: stageRaw } = getCurrentStage(field.transplantingDate);
-        const stage = stageRaw as { nameMy: string; nameEn: string };
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        seeded.push({
-          id: `t_${field.id}`,
-          title:
-            lang === "ms" ? `Semak ${field.name}` : `Inspect ${field.name}`,
-          fieldId: field.id,
-          fieldName: field.name,
-          dueDate: tomorrow.toLocaleDateString("ms-MY", {
-            weekday: "long",
-            day: "numeric",
-            month: "short",
-          }),
-          dueTime: "08:00 pagi",
-          status: "pending",
-          alertMessage: field.activeAlert?.message_ms,
-          eviValue: field.latestIndices.evi,
-          ndviValue: field.latestIndices.ndvi,
-          stage: lang === "ms" ? stage.nameMy : stage.nameEn,
-        });
-      }
-    }
-    return seeded;
-  });
-
   const [whatsAppTask, setWhatsAppTask] = useState<Task | null>(null);
 
   const toggleTask = (taskId: string) => {

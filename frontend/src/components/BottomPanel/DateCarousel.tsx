@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Cloud } from "lucide-react";
 
 interface DatePoint {
@@ -31,6 +31,12 @@ export default function DateCarousel({
       });
     }
   };
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [timeSeries]);
 
   if (!timeSeries || timeSeries.length === 0) return null;
 

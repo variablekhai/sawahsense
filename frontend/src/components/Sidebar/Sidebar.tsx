@@ -43,6 +43,9 @@ interface SidebarProps {
   pakTaniInsightLoading?: boolean;
   onPakTaniSend?: (msg: string) => void;
   onLoadInsight?: () => void;
+  onAddField?: () => void;
+  tasks?: any[];
+  setTasks?: any;
 }
 
 type TabId = "fields" | "tasks" | "alerts" | "pakTani";
@@ -73,6 +76,9 @@ export default function Sidebar({
   pakTaniInsightLoading = false,
   onPakTaniSend,
   onLoadInsight,
+  onAddField,
+  tasks = [],
+  setTasks,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -191,13 +197,15 @@ export default function Sidebar({
               selectedFieldId={selectedFieldId}
               onFieldSelect={onFieldSelect}
               lang={lang}
+              onAddField={onAddField}
             />
           )}
           {activeTab === "tasks" && (
             <TasksTab
-              fields={fields}
               selectedField={selectedField}
               lang={lang}
+              tasks={tasks}
+              setTasks={setTasks}
             />
           )}
           {activeTab === "alerts" && (

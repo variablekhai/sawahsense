@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Navbar from "../src/components/Navbar";
 import Sidebar from "../src/components/Sidebar/Sidebar";
@@ -8,6 +8,7 @@ import PakTaniAmbientCard from "../src/components/Map/PakTaniAmbientCard";
 import BottomPanel from "../src/components/BottomPanel/BottomPanel";
 import { getFieldsSortedByAlert } from "../src/data/demoFields";
 import { usePakTani } from "../src/hooks/usePakTani";
+import { Task } from "../src/components/Sidebar/TasksTab";
 import type { Field } from "../src/types";
 
 // Dynamic import for map (SSR incompatible)
@@ -65,9 +66,22 @@ export default function Home() {
   );
   const [ambientField, setAmbientField] = useState<any>(null);
   const [dataSource] = useState<"live" | "demo">("demo");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [bottomPanelExpanded, setBottomPanelExpanded] = useState(false);
+  const panelHeight = bottomPanelExpanded ? 280 : 40;
+
+  // Imperative ref so sidebar "Add Field" button can trigger map draw mode
+  const startDrawingRef = useRef<(() => void) | null>(null);
 
   // Extra fields from user-drawn polygons
   const [userFields, setUserFields] = useState<Field[]>([]);
+
+  // Tasks state
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  const handleAddTask = useCallback((task: Task) => {
+    setTasks((prev) => [task, ...prev]);
+  }, []);
 
   const baseFields = getFieldsSortedByAlert() as Field[];
   const fields: Field[] = [...baseFields, ...userFields];
@@ -80,7 +94,7 @@ export default function Home() {
     loadFieldInsight,
     sendMessage: pakTaniSend,
     clearConversation,
-  } = usePakTani();
+  } = usePakTani(handleAddTask);
 
   const alertCount = fields.filter((f) => f.alertLevel !== "healthy").length;
 
@@ -90,6 +104,15 @@ export default function Home() {
       const field = fields.find((f) => f.id === fieldId);
       if (field?.activeAlert) {
         setAmbientField(field);
+      }
+      // Auto-select the latest clear acquisition for this field
+      if (field?.acquisitionDates) {
+        const clear = [...field.acquisitionDates]
+          .reverse()
+          .find((d) => d.cloudPct <= 40);
+        setSelectedDate(clear?.date ?? null);
+      } else {
+        setSelectedDate(null);
       }
     },
     [fields],
@@ -187,6 +210,9 @@ export default function Home() {
         pakTaniInsightLoading={pakTaniInsightLoading}
         onPakTaniSend={handlePakTaniSend}
         onLoadInsight={handleLoadInsight}
+        onAddField={() => startDrawingRef.current?.()}
+        tasks={tasks}
+        setTasks={setTasks}
       />
 
       {/* Main map area */}
@@ -208,6 +234,10 @@ export default function Home() {
           onActiveIndexChange={setActiveIndex}
           lang={lang}
           onAmbientCardTrigger={handleAmbientCardTrigger}
+          selectedDate={selectedDate}
+          bottomOffset={panelHeight}
+          startDrawingRef={startDrawingRef}
+          initialCenter={fields[0]?.centroid ?? [3.481, 101.0268]}
         />
 
         {/* Pak Tani Ambient Card */}
@@ -215,9 +245,10 @@ export default function Home() {
           <div
             style={{
               position: "absolute",
-              bottom: "104px",
+              bottom: `${panelHeight + 16}px`,
               left: "16px",
               zIndex: 900,
+              transition: "bottom 0.3s ease",
             }}
           >
             <PakTaniAmbientCard
@@ -242,6 +273,10 @@ export default function Home() {
         source={dataSource}
         lang={lang}
         sidebarWidth={sidebarWidth}
+        selectedDate={selectedDate}
+        onDateSelect={setSelectedDate}
+        expanded={bottomPanelExpanded}
+        onExpandedChange={setBottomPanelExpanded}
       />
     </div>
   );

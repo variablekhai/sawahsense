@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Wheat, Pencil } from "lucide-react";
 
 interface Field {
@@ -18,6 +18,9 @@ interface Field {
     message_ms: string;
     message_en: string;
   };
+  heatmapBounds?: [[number, number], [number, number]];
+  tileBasePath?: string;
+  acquisitionDates?: Array<{ date: string; cloudPct: number }>;
 }
 
 interface NewFieldDraft {
@@ -36,6 +39,14 @@ interface MapContainerProps {
   onActiveIndexChange: (index: "NDVI" | "EVI" | "LSWI") => void;
   lang: "ms" | "en";
   onAmbientCardTrigger: (field: Field) => void;
+  /** The currently selected satellite acquisition date (from BottomPanel) */
+  selectedDate: string | null;
+  /** Height of the bottom panel in px so the legend floats above it */
+  bottomOffset?: number;
+  /** Imperative ref so the sidebar/parent can trigger draw mode */
+  startDrawingRef?: React.MutableRefObject<(() => void) | null>;
+  /** Initial map center — defaults to first field centroid */
+  initialCenter?: [number, number];
 }
 
 const ALERT_COLORS = {
@@ -389,12 +400,14 @@ interface IndexToggleBarProps {
   activeIndex: "NDVI" | "EVI" | "LSWI";
   onActiveIndexChange: (i: "NDVI" | "EVI" | "LSWI") => void;
   lang: "ms" | "en";
+  bottomOffset?: number;
 }
 
 function IndexToggleBar({
   activeIndex,
   onActiveIndexChange,
   lang,
+  bottomOffset = 52,
 }: IndexToggleBarProps) {
   const [showLegend, setShowLegend] = useState(false);
 
@@ -419,13 +432,14 @@ function IndexToggleBar({
     <div
       style={{
         position: "absolute",
-        bottom: "52px",
+        bottom: `${bottomOffset + 12}px`,
         right: "16px",
         zIndex: 1000,
         display: "flex",
         flexDirection: "column",
         gap: "6px",
         alignItems: "flex-end",
+        transition: "bottom 0.3s ease",
       }}
     >
       {/* Index buttons */}
@@ -573,11 +587,16 @@ export default function MapContainer({
   onActiveIndexChange,
   lang,
   onAmbientCardTrigger,
+  selectedDate,
+  bottomOffset = 40,
+  startDrawingRef,
+  initialCenter = [3.481, 101.0268],
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const polygonsRef = useRef<Map<string, any>>(new Map());
   const markersRef = useRef<Map<string, any>>(new Map());
+  const overlaysRef = useRef<Map<string, any>>(new Map());
   const drawControlRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
   const [drawMode, setDrawMode] = useState(false);
@@ -598,10 +617,10 @@ export default function MapContainer({
       console.warn("leaflet-draw not loaded:", e);
     }
 
-    // Sekinchan center
+    // Centre on first field (or Sekinchan fallback)
     const map = L.map(mapRef.current!, {
-      center: [3.481, 101.0268],
-      zoom: 13,
+      center: initialCenter,
+      zoom: 14,
       zoomControl: false,
       attributionControl: true,
     });
@@ -666,12 +685,20 @@ export default function MapContainer({
 
       polygonsRef.current.forEach((p) => map.removeLayer(p));
       markersRef.current.forEach((m) => map.removeLayer(m));
+      overlaysRef.current.forEach((o) => map.removeLayer(o));
       polygonsRef.current.clear();
       markersRef.current.clear();
+      overlaysRef.current.clear();
 
       for (const field of fields) {
         const isSelected = field.id === selectedFieldId;
         const alertColor = ALERT_COLORS[field.alertLevel];
+
+        const isHeatmapVisible =
+          !!field.tileBasePath && !!field.heatmapBounds && !!selectedDate;
+        const tileUrl = isHeatmapVisible
+          ? `${field.tileBasePath}/${activeIndex.toLowerCase()}/${selectedDate}.png`
+          : null;
 
         const polygon = L.polygon(
           field.geometry.coordinates[0].map(
@@ -680,7 +707,7 @@ export default function MapContainer({
           {
             color: isSelected ? "#39d353" : alertColor,
             fillColor: isSelected ? "#39d353" : alertColor,
-            fillOpacity: isSelected ? 0.22 : 0.14,
+            fillOpacity: isHeatmapVisible ? 0 : isSelected ? 0.22 : 0.14,
             weight: isSelected ? 2.5 : 1.5,
           },
         ).addTo(map);
@@ -727,6 +754,21 @@ export default function MapContainer({
 
         polygonsRef.current.set(field.id, polygon);
         markersRef.current.set(field.id, marker);
+
+        if (tileUrl && field.heatmapBounds) {
+          const overlay = L.imageOverlay(tileUrl, field.heatmapBounds, {
+            opacity: isSelected ? 0.92 : 0.72,
+            interactive: true,
+          }).addTo(map);
+
+          overlay.on("click", handleClick);
+          overlay.bindTooltip(tooltipHtml, {
+            sticky: true,
+            className: "sawahsense-tooltip",
+          });
+
+          overlaysRef.current.set(field.id, overlay);
+        }
       }
     };
     load();
@@ -737,6 +779,8 @@ export default function MapContainer({
     onFieldSelect,
     onAmbientCardTrigger,
     lang,
+    activeIndex,
+    selectedDate,
   ]);
 
   // Fly to selected field
@@ -750,7 +794,7 @@ export default function MapContainer({
       });
   }, [selectedFieldId, mapReady, fields]);
 
-  // Toggle draw mode
+  // Toggle draw mode — also exposed via startDrawingRef for sidebar button
   const startDrawing = useCallback(async () => {
     if (!mapInstanceRef.current) return;
     const L = (await import("leaflet")).default;
@@ -776,6 +820,14 @@ export default function MapContainer({
     polygonHandler.enable();
     setDrawMode(true);
   }, []);
+
+  // Expose startDrawing imperatively so the sidebar can trigger it
+  useEffect(() => {
+    if (startDrawingRef) startDrawingRef.current = startDrawing;
+    return () => {
+      if (startDrawingRef) startDrawingRef.current = null;
+    };
+  }, [startDrawingRef, startDrawing]);
 
   // Handle new field confirmed from modal
   const handleFieldConfirm = useCallback(
@@ -863,76 +915,80 @@ export default function MapContainer({
         activeIndex={activeIndex}
         onActiveIndexChange={onActiveIndexChange}
         lang={lang}
+        bottomOffset={bottomOffset}
       />
 
-      {/* Draw field button - bottom left */}
+      {/* Draw field button — top-right, below zoom controls */}
       <div
         style={{
           position: "absolute",
-          bottom: "52px",
-          left: "16px",
+          top: "90px",
+          right: "10px",
           zIndex: 1000,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: "6px",
         }}
       >
         <button
           onClick={startDrawing}
           disabled={drawMode}
+          title={
+            lang === "ms"
+              ? "Lukis sempadan ladang baru"
+              : "Draw new field boundary"
+          }
           style={{
-            padding: "7px 14px",
+            width: 30,
+            height: 30,
             background: drawMode
               ? "var(--accent-green-dim)"
-              : "rgba(22, 27, 34, 0.92)",
+              : "rgba(22, 27, 34, 0.96)",
             border: `1px solid ${drawMode ? "var(--accent-green)" : "var(--border)"}`,
-            borderRadius: "20px",
+            borderRadius: "4px",
             color: drawMode ? "var(--accent-green)" : "var(--text-secondary)",
-            fontSize: "0.75rem",
-            fontFamily: "IBM Plex Sans, sans-serif",
-            fontWeight: 500,
             cursor: drawMode ? "not-allowed" : "pointer",
             backdropFilter: "blur(8px)",
             display: "flex",
             alignItems: "center",
-            gap: "6px",
+            justifyContent: "center",
             transition: "all 0.15s ease",
+            boxShadow: "0 1px 5px rgba(0,0,0,0.65)",
           }}
         >
           {drawMode ? (
-            <>
-              <span
-                style={{
-                  display: "inline-block",
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: "var(--accent-green)",
-                  animation: "pulse-dot 1s ease-in-out infinite",
-                }}
-              />
-              {lang === "ms" ? "Lukis polygon..." : "Drawing polygon..."}
-            </>
+            <span
+              style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "var(--accent-green)",
+                animation: "pulse-dot 1s ease-in-out infinite",
+              }}
+            />
           ) : (
-            <>
-              <Pencil size={13} />
-              {lang === "ms" ? "Tambah Ladang" : "Add Field"}
-            </>
+            <Pencil size={13} />
           )}
         </button>
         {drawMode && (
           <p
             style={{
-              margin: "6px 0 0",
+              margin: 0,
               fontSize: "0.6875rem",
               fontFamily: "IBM Plex Mono, monospace",
               color: "var(--text-muted)",
-              background: "rgba(13,17,23,0.85)",
+              background: "rgba(13,17,23,0.9)",
               padding: "4px 8px",
               borderRadius: "6px",
               whiteSpace: "nowrap",
+              border: "1px solid var(--border)",
             }}
           >
             {lang === "ms"
-              ? "Klik untuk menandai sempadan, dwi-klik untuk selesai"
-              : "Click to mark boundary, double-click to finish"}
+              ? "Klik tandai sempadan, dwi-klik selesai"
+              : "Click to mark boundary, dbl-click to finish"}
           </p>
         )}
       </div>

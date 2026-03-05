@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -52,7 +52,7 @@ class WhatsAppRequest(BaseModel):
     eviValue: Optional[float] = None
     ndviValue: Optional[float] = None
     stage: Optional[str] = None
-    dayNum: Optional[int] = None
+    dayNum: Optional[Union[int, str]] = None
 
 PAK_TANI_SYSTEM_PROMPT = """You are Pak Tani, a trusted agricultural advisor in the SawahSense app for Malaysian paddy farmers. Talk like a knowledgeable senior farmer or Jabatan Pertanian extension officer — warm, practical, never condescending.
 

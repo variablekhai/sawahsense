@@ -27,6 +27,11 @@ export interface TimeSeriesPoint {
   cloudPct: number;
 }
 
+export interface AcquisitionDate {
+  date: string;
+  cloudPct: number;
+}
+
 export interface Field {
   id: string;
   name: string;
@@ -43,6 +48,12 @@ export interface Field {
   variety?: string;
   activeAlert?: ActiveAlert;
   timeSeries: TimeSeriesPoint[];
+  /** GeoJSON bounding box [[south, west], [north, east]] for Leaflet imageOverlay */
+  heatmapBounds?: [[number, number], [number, number]];
+  /** Path prefix — tiles live at {tileBasePath}/{index}/{date}.png */
+  tileBasePath?: string;
+  /** Acquisition schedule with cloud % */
+  acquisitionDates?: AcquisitionDate[];
 }
 
 export interface Message {

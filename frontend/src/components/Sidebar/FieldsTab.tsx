@@ -24,6 +24,7 @@ interface FieldsTabProps {
   selectedFieldId: string | null;
   onFieldSelect: (id: string) => void;
   lang: "ms" | "en";
+  onAddField?: () => void;
 }
 
 const ALERT_COLORS = {
@@ -43,6 +44,7 @@ export default function FieldsTab({
   selectedFieldId,
   onFieldSelect,
   lang,
+  onAddField,
 }: FieldsTabProps) {
   // Sort: Critical → Warning → Healthy
   const sorted = [...fields].sort((a, b) => {
@@ -268,6 +270,7 @@ export default function FieldsTab({
         }}
       >
         <button
+          onClick={onAddField}
           style={{
             width: "100%",
             padding: "8px",

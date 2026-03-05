@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import IndexChart from "./IndexChart";
 import DateCarousel from "./DateCarousel";
@@ -20,6 +19,7 @@ interface Field {
     lswi: number;
     cloudPct: number;
   }>;
+  acquisitionDates?: Array<{ date: string; cloudPct: number }>;
 }
 
 interface BottomPanelProps {
@@ -27,6 +27,12 @@ interface BottomPanelProps {
   source: "live" | "demo";
   lang: "ms" | "en";
   sidebarWidth: number;
+  /** Lifted from page.tsx — shared with MapContainer */
+  selectedDate: string | null;
+  onDateSelect: (date: string) => void;
+  /** Lifted state so page.tsx can compute panel height for the indices legend offset */
+  expanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
 }
 
 export default function BottomPanel({
@@ -34,13 +40,19 @@ export default function BottomPanel({
   source,
   lang,
   sidebarWidth,
+  selectedDate,
+  onDateSelect,
+  expanded,
+  onExpandedChange,
 }: BottomPanelProps) {
-  const [expanded, setExpanded] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-
   const { gdd, loading: gddLoading } = useGDD(selectedField);
 
   const panelHeight = expanded ? 280 : 40;
+
+  // Use acquisitionDates for datechips if available (richer cloud data),
+  // else fall back to timeSeries so legacy/user-drawn fields still work
+  const carouselDates =
+    selectedField?.acquisitionDates ?? selectedField?.timeSeries ?? [];
 
   return (
     <div
@@ -72,7 +84,7 @@ export default function BottomPanel({
           cursor: "pointer",
           borderBottom: expanded ? "1px solid var(--border-subtle)" : "none",
         }}
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => onExpandedChange(!expanded)}
       >
         {/* Field name or prompt */}
         <div
@@ -206,12 +218,12 @@ export default function BottomPanel({
               />
             </div>
 
-            {/* Date carousel */}
+            {/* Date carousel — uses acquisitionDates when available */}
             <div style={{ flexShrink: 0, padding: "0 16px 8px" }}>
               <DateCarousel
-                timeSeries={selectedField.timeSeries}
+                timeSeries={carouselDates}
                 selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
+                onDateSelect={onDateSelect}
                 lang={lang}
               />
             </div>
