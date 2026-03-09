@@ -729,14 +729,14 @@ export default function MapContainer({
         const marker = L.marker(field.centroid, { icon: dotIcon }).addTo(map);
 
         const tooltipHtml = `
-          <div style="font-family:'IBM Plex Sans',sans-serif;min-width:180px;max-width:420px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">
-            <div style="font-weight:600;color:#e6edf3;margin-bottom:4px;font-size:0.8125rem;">${field.name}</div>
-            <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#8b949e;">
-              NDVI <span style="color:#3fb950">${field.latestIndices.ndvi.toFixed(2)}</span> &nbsp;
-              EVI <span style="color:#39d353">${field.latestIndices.evi.toFixed(2)}</span> &nbsp;
-              LSWI <span style="color:#58a6ff">${field.latestIndices.lswi.toFixed(2)}</span>
+          <div style="font-family:'IBM Plex Sans',sans-serif;min-width:240px;max-width:420px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">
+            <div style="font-weight:600;color:#e6edf3;margin-bottom:6px;font-size:0.875rem;">${field.name}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#c9d1d9;display:flex;gap:10px;flex-wrap:wrap;">
+              <span>NDVI <span style="color:#3fb950;font-weight:600;">${field.latestIndices.ndvi.toFixed(2)}</span></span>
+              <span>EVI <span style="color:#39d353;font-weight:600;">${field.latestIndices.evi.toFixed(2)}</span></span>
+              <span>LSWI <span style="color:#58a6ff;font-weight:600;">${field.latestIndices.lswi.toFixed(2)}</span></span>
             </div>
-            ${field.activeAlert ? `<div style="color:${alertColor};font-size:0.6875rem;margin-top:4px;line-height:1.3;">&#9651; ${lang === "ms" ? field.activeAlert.message_ms : field.activeAlert.message_en}</div>` : ""}
+            ${field.activeAlert ? `<div style="color:${alertColor};font-size:0.75rem;margin-top:6px;line-height:1.4;font-weight:500;">&#9651; ${lang === "ms" ? field.activeAlert.message_ms : field.activeAlert.message_en}</div>` : ""}
           </div>
         `;
 
