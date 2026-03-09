@@ -135,35 +135,37 @@ export default function BottomPanel({
               </div>
 
               {/* Demo/live badge */}
-              <span
-                style={{
-                  marginLeft: isMobile ? 0 : 4,
-                  fontSize: "0.5625rem",
-                  fontFamily: "IBM Plex Mono, monospace",
-                  color:
-                    source === "live"
-                      ? "var(--accent-green)"
-                      : "var(--text-muted)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "3px",
-                  whiteSpace: "nowrap",
-                }}
-              >
+              {!isMobile && (
                 <span
                   style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: "50%",
-                    background:
+                    marginLeft: 4,
+                    fontSize: "0.5625rem",
+                    fontFamily: "IBM Plex Mono, monospace",
+                    color:
                       source === "live"
                         ? "var(--accent-green)"
                         : "var(--text-muted)",
-                    display: "inline-block",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px",
+                    whiteSpace: "nowrap",
                   }}
-                />
-                {source === "live" ? "Live" : "Demo"}
-              </span>
+                >
+                  <span
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: "50%",
+                      background:
+                        source === "live"
+                          ? "var(--accent-green)"
+                          : "var(--text-muted)",
+                      display: "inline-block",
+                    }}
+                  />
+                  {source === "live" ? "Live" : "Demo"}
+                </span>
+              )}
             </>
           ) : (
             <span
