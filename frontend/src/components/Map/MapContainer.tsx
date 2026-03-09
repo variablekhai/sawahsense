@@ -49,10 +49,22 @@ interface MapContainerProps {
   startDrawingRef?: React.MutableRefObject<(() => void) | null>;
   /** Imperative ref so the sidebar/parent can cancel drawing mode */
   cancelDrawingRef?: React.MutableRefObject<(() => void) | null>;
-  /** Inform parent/sidebar when field-adding flow is active */
-  onAddFieldStateChange?: (isAdding: boolean) => void;
+  /** Imperative ref so the onboarding sidebar can fly to a location */
+  flyToRef?: React.MutableRefObject<
+    ((lat: number, lng: number) => void) | null
+  >;
+  /** When true, AddFieldModal is suppressed — parent uses confirmFieldRef instead */
+  suppressFieldModal?: boolean;
+  /** Imperative ref to confirm the drawn field from onboarding step 3 */
+  confirmFieldRef?: React.MutableRefObject<
+    ((name: string, variety: string, sowingDate: string) => void) | null
+  >;
+  /** Inform parent/sidebar when field-adding flow is active and if a draft polygon exists */
+  onAddFieldStateChange?: (isAdding: boolean, hasDraft?: boolean) => void;
   /** Initial map center — defaults to first field centroid */
   initialCenter?: [number, number];
+  /** Initial map zoom level */
+  initialZoom?: number;
 }
 
 const ALERT_COLORS = {
@@ -582,8 +594,12 @@ export default function MapContainer({
   bottomOffset = 40,
   startDrawingRef,
   cancelDrawingRef,
+  flyToRef,
+  suppressFieldModal = false,
+  confirmFieldRef,
   onAddFieldStateChange,
   initialCenter = [3.481, 101.0268],
+  initialZoom,
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -610,10 +626,10 @@ export default function MapContainer({
       console.warn("leaflet-draw not loaded:", e);
     }
 
-    // Centre on first field (or Sekinchan fallback)
+    // Centre on first field (or Sekinchan/Malaysia fallback)
     const map = L.map(mapRef.current!, {
       center: initialCenter,
-      zoom: 14,
+      zoom: initialZoom || 14,
       zoomControl: false,
       attributionControl: true,
     });
@@ -729,14 +745,14 @@ export default function MapContainer({
         const marker = L.marker(field.centroid, { icon: dotIcon }).addTo(map);
 
         const tooltipHtml = `
-          <div style="font-family:'IBM Plex Sans',sans-serif;min-width:180px;max-width:420px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">
-            <div style="font-weight:600;color:#e6edf3;margin-bottom:4px;font-size:0.8125rem;">${field.name}</div>
-            <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#8b949e;">
-              NDVI <span style="color:#3fb950">${field.latestIndices.ndvi.toFixed(2)}</span> &nbsp;
-              EVI <span style="color:#39d353">${field.latestIndices.evi.toFixed(2)}</span> &nbsp;
-              LSWI <span style="color:#58a6ff">${field.latestIndices.lswi.toFixed(2)}</span>
+          <div style="font-family:'IBM Plex Sans',sans-serif;min-width:240px;max-width:420px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;">
+            <div style="font-weight:600;color:#e6edf3;margin-bottom:6px;font-size:0.875rem;">${field.name}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#c9d1d9;display:flex;gap:10px;flex-wrap:wrap;">
+              <span>NDVI <span style="color:#3fb950;font-weight:600;">${field.latestIndices.ndvi.toFixed(2)}</span></span>
+              <span>EVI <span style="color:#39d353;font-weight:600;">${field.latestIndices.evi.toFixed(2)}</span></span>
+              <span>LSWI <span style="color:#58a6ff;font-weight:600;">${field.latestIndices.lswi.toFixed(2)}</span></span>
             </div>
-            ${field.activeAlert ? `<div style="color:${alertColor};font-size:0.6875rem;margin-top:4px;line-height:1.3;">&#9651; ${lang === "ms" ? field.activeAlert.message_ms : field.activeAlert.message_en}</div>` : ""}
+            ${field.activeAlert ? `<div style="color:${alertColor};font-size:0.75rem;margin-top:6px;line-height:1.4;font-weight:500;">&#9651; ${lang === "ms" ? field.activeAlert.message_ms : field.activeAlert.message_en}</div>` : ""}
           </div>
         `;
 
@@ -838,21 +854,38 @@ export default function MapContainer({
     setDrawMode(false);
   }, []);
 
-  // Expose startDrawing imperatively so the sidebar can trigger it
+  // Expose startDrawing & flyTo imperatively so the sidebar can trigger them
+  const flyTo = useCallback((lat: number, lng: number) => {
+    if (!mapInstanceRef.current) return;
+    mapInstanceRef.current.flyTo([lat, lng], 15, {
+      animate: true,
+      duration: 1.2,
+    });
+  }, []);
+
   useEffect(() => {
     if (startDrawingRef) startDrawingRef.current = startDrawing;
     if (cancelDrawingRef) cancelDrawingRef.current = cancelDrawing;
+    if (flyToRef) flyToRef.current = flyTo;
     return () => {
       if (startDrawingRef) startDrawingRef.current = null;
       if (cancelDrawingRef) cancelDrawingRef.current = null;
+      if (flyToRef) flyToRef.current = null;
     };
-  }, [startDrawingRef, startDrawing, cancelDrawingRef, cancelDrawing]);
+  }, [
+    startDrawingRef,
+    startDrawing,
+    cancelDrawingRef,
+    cancelDrawing,
+    flyToRef,
+    flyTo,
+  ]);
 
   const isAddingField = drawMode || !!newFieldDraft;
 
   useEffect(() => {
-    onAddFieldStateChange?.(isAddingField);
-  }, [isAddingField, onAddFieldStateChange]);
+    onAddFieldStateChange?.(isAddingField, !!newFieldDraft);
+  }, [isAddingField, newFieldDraft, onAddFieldStateChange]);
 
   // Handle new field confirmed from modal
   const handleFieldConfirm = useCallback(
@@ -924,6 +957,14 @@ export default function MapContainer({
   const handleFieldCancel = useCallback(() => {
     cancelDrawing();
   }, [cancelDrawing]);
+
+  // Register confirmFieldRef after handleFieldConfirm is defined
+  useEffect(() => {
+    if (confirmFieldRef) confirmFieldRef.current = handleFieldConfirm;
+    return () => {
+      if (confirmFieldRef) confirmFieldRef.current = null;
+    };
+  }, [confirmFieldRef, handleFieldConfirm]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -1012,8 +1053,8 @@ export default function MapContainer({
         )}
       </div>
 
-      {/* New Field Confirmation Modal */}
-      {newFieldDraft && (
+      {/* New Field Confirmation Modal — suppressed during onboarding (sidebar step 3 handles it) */}
+      {newFieldDraft && !suppressFieldModal && (
         <AddFieldModal
           draft={newFieldDraft}
           onConfirm={handleFieldConfirm}

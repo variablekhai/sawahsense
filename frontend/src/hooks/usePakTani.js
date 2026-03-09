@@ -30,11 +30,11 @@ export function usePakTani(onAddTask) {
   /**
    * Load the initial insight for a field (shown when Pak Tani tab opens or ambient card fires)
    */
-  const loadFieldInsight = useCallback(async (field) => {
+  const loadFieldInsight = useCallback(async (field, lang = "en") => {
     if (!field) return;
 
     const today = new Date().toISOString().split("T")[0];
-    const cacheKey = `${field.id}_${today}`;
+    const cacheKey = `${field.id}_${today}_${lang}`;
 
     // Return cached insight if available
     if (insightCache.has(cacheKey)) {
@@ -69,6 +69,7 @@ export function usePakTani(onAddTask) {
           fieldContext,
           mode: "initial_insight",
           messages: [],
+          lang,
         }),
       });
 
@@ -93,9 +94,15 @@ export function usePakTani(onAddTask) {
       setInitialInsight(insight);
     } catch (err) {
       console.error("Pak Tani insight failed:", err);
-      const fallback = field.activeAlert
-        ? field.activeAlert.message_ms + " Sila semak ladang anda segera."
-        : `Ladang ${field.name} kelihatan baik pada peringkat ${stage.nameMy}. Ada soalan?`;
+      const fallback =
+        lang === "en"
+          ? field.activeAlert
+            ? field.activeAlert.message_en +
+              " Please inspect your field promptly."
+            : `Field ${field.name} looks good at the ${stage.nameEn} stage. Any questions?`
+          : field.activeAlert
+            ? field.activeAlert.message_ms + " Sila semak ladang anda segera."
+            : `Ladang ${field.name} kelihatan baik pada peringkat ${stage.nameMy}. Ada soalan?`;
       setInitialInsight(fallback);
       setMessages([{ role: "assistant", content: fallback }]);
     }
@@ -206,7 +213,9 @@ export function usePakTani(onAddTask) {
 
         await new Promise((r) => setTimeout(r, 700));
 
-        const { stage: rawStage } = getCurrentStage(field?.transplantingDate || "");
+        const { stage: rawStage } = getCurrentStage(
+          field?.transplantingDate || "",
+        );
         const stageMy = rawStage?.nameMy || "";
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -493,12 +502,11 @@ Mahu saya tambah tugasan "Pemeriksaan Pintu Air" ke senarai tugas anda?`;
             ...updatedMessages,
             {
               role: "assistant",
-              content:
-                t(
-                  currentLang,
-                  "Maaf, saya tidak dapat menjawab sekarang. Cuba lagi sebentar.",
-                  "Sorry, I can’t answer right now. Please try again shortly.",
-                ),
+              content: t(
+                currentLang,
+                "Maaf, saya tidak dapat menjawab sekarang. Cuba lagi sebentar.",
+                "Sorry, I can’t answer right now. Please try again shortly.",
+              ),
             },
           ]);
         }

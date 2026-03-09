@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Navbar from "../src/components/Navbar";
 import Sidebar from "../src/components/Sidebar/Sidebar";
+import OnboardingSidebar from "../src/components/Sidebar/OnboardingSidebar";
 import PakTaniAmbientCard from "../src/components/Map/PakTaniAmbientCard";
 import BottomPanel from "../src/components/BottomPanel/BottomPanel";
 import { getFieldsSortedByAlert } from "../src/data/demoFields";
@@ -48,7 +49,7 @@ const MapContainer = dynamic(
               letterSpacing: "0.08em",
             }}
           >
-            MEMUATKAN PETA...
+            LOADING MAP...
           </p>
         </div>
       </div>
@@ -59,7 +60,7 @@ const MapContainer = dynamic(
 type TabId = "fields" | "tasks" | "alerts" | "pakTani";
 
 export default function Home() {
-  const [lang, setLang] = useState<"ms" | "en">("ms");
+  const [lang, setLang] = useState<"ms" | "en">("en");
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("fields");
   const [activeIndex, setActiveIndex] = useState<"NDVI" | "EVI" | "LSWI">(
@@ -81,10 +82,18 @@ export default function Home() {
   // Imperative ref so sidebar "Add Field" button can trigger map draw mode
   const startDrawingRef = useRef<(() => void) | null>(null);
   const cancelDrawingRef = useRef<(() => void) | null>(null);
+  const flyToRef = useRef<((lat: number, lng: number) => void) | null>(null);
+  const confirmFieldRef = useRef<
+    ((name: string, variety: string, sowingDate: string) => void) | null
+  >(null);
   const [isAddingField, setIsAddingField] = useState(false);
+  const [hasDrawnDraft, setHasDrawnDraft] = useState(false);
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Onboarding: show the 3-step flow on first load
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   // Extra fields from user-drawn polygons
   const [userFields, setUserFields] = useState<Field[]>([]);
@@ -137,18 +146,18 @@ export default function Home() {
 
   const handleLoadInsight = useCallback(() => {
     if (selectedField) {
-      loadFieldInsight(selectedField);
+      loadFieldInsight(selectedField, lang);
     }
-  }, [selectedField, loadFieldInsight]);
+  }, [selectedField, loadFieldInsight, lang]);
 
   const handleTabChange = useCallback(
     (tab: TabId) => {
       setActiveTab(tab);
       if (tab === "pakTani" && selectedField) {
-        loadFieldInsight(selectedField);
+        loadFieldInsight(selectedField, lang);
       }
     },
-    [selectedField, loadFieldInsight],
+    [selectedField, loadFieldInsight, lang],
   );
 
   const handlePakTaniSend = useCallback(
@@ -162,8 +171,8 @@ export default function Home() {
 
   const handleOpenFullPanel = useCallback(() => {
     setActiveTab("pakTani");
-    if (selectedField) loadFieldInsight(selectedField);
-  }, [selectedField, loadFieldInsight]);
+    if (selectedField) loadFieldInsight(selectedField, lang);
+  }, [selectedField, loadFieldInsight, lang]);
 
   useEffect(() => {
     clearConversation();
@@ -227,37 +236,54 @@ export default function Home() {
         />
       )}
 
-      {/* Sidebar */}
-      <Sidebar
-        fields={fields}
-        selectedFieldId={selectedFieldId}
-        onFieldSelect={(id) => {
-          handleFieldSelect(id);
-          if (isMobile) setMobileSidebarOpen(false);
-        }}
-        lang={lang}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        pakTaniMessages={pakTaniMessages}
-        pakTaniLoading={pakTaniLoading}
-        pakTaniInsightLoading={pakTaniInsightLoading}
-        onPakTaniSend={handlePakTaniSend}
-        onLoadInsight={handleLoadInsight}
-        onAddField={() => startDrawingRef.current?.()}
-        isAddingField={isAddingField}
-        onCancelAddField={() => cancelDrawingRef.current?.()}
-        tasks={tasks}
-        setTasks={setTasks}
-        isMobile={isMobile}
-        collapsed={isMobile ? !mobileSidebarOpen : sidebarCollapsed}
-        onToggleCollapse={() => {
-          if (isMobile) {
-            setMobileSidebarOpen(!mobileSidebarOpen);
-          } else {
-            setSidebarCollapsed(!sidebarCollapsed);
-          }
-        }}
-      />
+      {/* Onboarding sidebar (replaces normal sidebar on first load) */}
+      {showOnboarding && !isMobile ? (
+        <OnboardingSidebar
+          lang={lang}
+          onLocationConfirm={(lat, lng) => flyToRef.current?.(lat, lng)}
+          onStartDrawing={() => startDrawingRef.current?.()}
+          isDrawingField={isAddingField && !hasDrawnDraft}
+          hasDrawnDraft={hasDrawnDraft}
+          onFieldDetailsConfirm={(name, variety, sowingDate) => {
+            confirmFieldRef.current?.(name, variety, sowingDate);
+          }}
+          onComplete={() => {
+            setShowOnboarding(false);
+            setSidebarCollapsed(false);
+          }}
+        />
+      ) : !showOnboarding || isMobile ? (
+        <Sidebar
+          fields={fields}
+          selectedFieldId={selectedFieldId}
+          onFieldSelect={(id) => {
+            handleFieldSelect(id);
+            if (isMobile) setMobileSidebarOpen(false);
+          }}
+          lang={lang}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          pakTaniMessages={pakTaniMessages}
+          pakTaniLoading={pakTaniLoading}
+          pakTaniInsightLoading={pakTaniInsightLoading}
+          onPakTaniSend={handlePakTaniSend}
+          onLoadInsight={handleLoadInsight}
+          onAddField={() => startDrawingRef.current?.()}
+          isAddingField={isAddingField}
+          onCancelAddField={() => cancelDrawingRef.current?.()}
+          tasks={tasks}
+          setTasks={setTasks}
+          isMobile={isMobile}
+          collapsed={isMobile ? !mobileSidebarOpen : sidebarCollapsed}
+          onToggleCollapse={() => {
+            if (isMobile) {
+              setMobileSidebarOpen(!mobileSidebarOpen);
+            } else {
+              setSidebarCollapsed(!sidebarCollapsed);
+            }
+          }}
+        />
+      ) : null}
 
       {/* Main map area */}
       <div
@@ -265,7 +291,11 @@ export default function Home() {
         style={{
           position: "fixed",
           top: "var(--navbar-height)",
-          left: isMobile ? 0 : `${sidebarWidth}px`,
+          left: isMobile
+            ? 0
+            : showOnboarding
+              ? `${sidebarWidth}px`
+              : `${sidebarWidth}px`,
           right: 0,
           bottom: 0,
         }}
@@ -283,8 +313,19 @@ export default function Home() {
           bottomOffset={panelHeight}
           startDrawingRef={startDrawingRef}
           cancelDrawingRef={cancelDrawingRef}
-          onAddFieldStateChange={setIsAddingField}
-          initialCenter={fields[0]?.centroid ?? [3.481, 101.0268]}
+          flyToRef={flyToRef}
+          suppressFieldModal={showOnboarding}
+          confirmFieldRef={confirmFieldRef}
+          onAddFieldStateChange={(isAdding: boolean, hasDraft?: boolean) => {
+            setIsAddingField(isAdding);
+            setHasDrawnDraft(hasDraft || false);
+          }}
+          initialCenter={
+            showOnboarding
+              ? [4.2105, 101.9758]
+              : (fields[0]?.centroid ?? [3.481, 101.0268])
+          }
+          initialZoom={showOnboarding ? 6 : 14}
         />
 
         {/* Pak Tani Ambient Card */}

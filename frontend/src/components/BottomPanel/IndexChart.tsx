@@ -184,35 +184,72 @@ export default function IndexChart({
   selectedDate,
   lang,
 }: IndexChartProps) {
-  if (!timeSeries || timeSeries.length === 0) return null;
+  let displayData: ChartPoint[] = [];
 
-  // Keep measured points as solid lines; fill cloudy gaps with dotted estimates.
-  const measured = timeSeries.map((point) => ({
-    ndviDisplay: point.cloudPct > 40 ? null : point.ndvi,
-    eviDisplay: point.cloudPct > 40 ? null : point.evi,
-    lswiDisplay: point.cloudPct > 40 ? null : point.lswi,
-  }));
-  const ndviEstimated = buildEstimatedSeries(
-    measured.map((p) => p.ndviDisplay),
-  );
-  const eviEstimated = buildEstimatedSeries(measured.map((p) => p.eviDisplay));
-  const lswiEstimated = buildEstimatedSeries(
-    measured.map((p) => p.lswiDisplay),
-  );
+  if (!timeSeries || timeSeries.length === 0) {
+    // Generate dummy blank data for newly created fields to render axes
+    const tDate = new Date(transplantingDate);
+    const today = new Date();
 
-  const displayData: ChartPoint[] = timeSeries.map((point, idx) => ({
-    ...point,
-    dateShort: new Date(point.date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-    }),
-    ndviDisplay: measured[idx].ndviDisplay,
-    eviDisplay: measured[idx].eviDisplay,
-    lswiDisplay: measured[idx].lswiDisplay,
-    ndviEstimated: ndviEstimated[idx],
-    eviEstimated: eviEstimated[idx],
-    lswiEstimated: lswiEstimated[idx],
-  }));
+    // Create points spanning from sowing to today
+    const points = [tDate];
+    let curr = new Date(tDate);
+    while (curr < today) {
+      curr.setDate(curr.getDate() + 15);
+      if (curr < today) {
+        points.push(new Date(curr));
+      }
+    }
+    points.push(today);
+
+    displayData = points.map((d) => ({
+      date: d.toISOString(),
+      ndvi: 0,
+      evi: 0,
+      lswi: 0,
+      cloudPct: 0,
+      dateShort: d.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+      }),
+      ndviDisplay: null,
+      eviDisplay: null,
+      lswiDisplay: null,
+      ndviEstimated: null,
+      eviEstimated: null,
+      lswiEstimated: null,
+    }));
+  } else {
+    // Keep measured points as solid lines; fill cloudy gaps with dotted estimates.
+    const measured = timeSeries.map((point) => ({
+      ndviDisplay: point.cloudPct > 40 ? null : point.ndvi,
+      eviDisplay: point.cloudPct > 40 ? null : point.evi,
+      lswiDisplay: point.cloudPct > 40 ? null : point.lswi,
+    }));
+    const ndviEstimated = buildEstimatedSeries(
+      measured.map((p) => p.ndviDisplay),
+    );
+    const eviEstimated = buildEstimatedSeries(
+      measured.map((p) => p.eviDisplay),
+    );
+    const lswiEstimated = buildEstimatedSeries(
+      measured.map((p) => p.lswiDisplay),
+    );
+
+    displayData = timeSeries.map((point, idx) => ({
+      ...point,
+      dateShort: new Date(point.date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+      }),
+      ndviDisplay: measured[idx].ndviDisplay,
+      eviDisplay: measured[idx].eviDisplay,
+      lswiDisplay: measured[idx].lswiDisplay,
+      ndviEstimated: ndviEstimated[idx],
+      eviEstimated: eviEstimated[idx],
+      lswiEstimated: lswiEstimated[idx],
+    }));
+  }
 
   // Find stage transition points for reference lines
   const stageTransitions: { date: string; label: string; color: string }[] = [];
