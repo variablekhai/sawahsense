@@ -48,6 +48,7 @@ interface SidebarProps {
   onCancelAddField?: () => void;
   tasks?: any[];
   setTasks?: any;
+  isMobile?: boolean;
 }
 
 type TabId = "fields" | "tasks" | "alerts" | "pakTani";
@@ -83,6 +84,7 @@ export default function Sidebar({
   onCancelAddField,
   tasks = [],
   setTasks,
+  isMobile = false,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -239,54 +241,56 @@ export default function Sidebar({
       </div>
 
       {/* ── Collapse toggle — rendered OUTSIDE sidebar so overflow:hidden can't clip it ── */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        title={
-          collapsed
-            ? lang === "ms"
-              ? "Buka sidebar"
-              : "Open sidebar"
-            : lang === "ms"
-              ? "Tutup sidebar"
-              : "Close sidebar"
-        }
-        style={{
-          position: "fixed",
-          top: "50vh",
-          // When open: button sits right at the sidebar edge
-          left: collapsed ? "0px" : SIDEBAR_WIDTH,
-          transform: "translateY(-50%)",
-          width: 20,
-          height: 48,
-          background: "var(--bg-surface)",
-          border: "1px solid var(--border)",
-          borderLeft: collapsed ? "1px solid var(--border)" : "none",
-          borderRadius: collapsed ? "0 6px 6px 0" : "0 6px 6px 0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          zIndex: 910,
-          color: "var(--text-muted)",
-          transition:
-            "left 0.3s cubic-bezier(0.4,0,0.2,1), background 0.15s ease",
-          padding: 0,
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            "var(--bg-elevated)";
-          (e.currentTarget as HTMLButtonElement).style.color =
-            "var(--text-primary)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background =
-            "var(--bg-surface)";
-          (e.currentTarget as HTMLButtonElement).style.color =
-            "var(--text-muted)";
-        }}
-      >
-        {collapsed ? <ChevronRight size={11} /> : <ChevronLeft size={11} />}
-      </button>
+      {!isMobile && (
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          title={
+            collapsed
+              ? lang === "ms"
+                ? "Buka sidebar"
+                : "Open sidebar"
+              : lang === "ms"
+                ? "Tutup sidebar"
+                : "Close sidebar"
+          }
+          style={{
+            position: "fixed",
+            top: "50vh",
+            // When open: button sits right at the sidebar edge
+            left: collapsed ? "0px" : SIDEBAR_WIDTH,
+            transform: "translateY(-50%)",
+            width: 20,
+            height: 48,
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderLeft: collapsed ? "1px solid var(--border)" : "none",
+            borderRadius: collapsed ? "0 6px 6px 0" : "0 6px 6px 0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 910,
+            color: "var(--text-muted)",
+            transition:
+              "left 0.3s cubic-bezier(0.4,0,0.2,1), background 0.15s ease",
+            padding: 0,
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background =
+              "var(--bg-elevated)";
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "var(--text-primary)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background =
+              "var(--bg-surface)";
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "var(--text-muted)";
+          }}
+        >
+          {collapsed ? <ChevronRight size={11} /> : <ChevronLeft size={11} />}
+        </button>
+      )}
     </>
   );
 }

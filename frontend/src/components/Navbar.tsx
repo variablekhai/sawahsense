@@ -1,6 +1,6 @@
 "use client";
 
-import { Satellite, Bell, ChevronRight } from "lucide-react";
+import { Satellite, Bell, ChevronRight, Menu } from "lucide-react";
 
 interface NavbarProps {
   selectedFieldName?: string | null;
@@ -8,6 +8,7 @@ interface NavbarProps {
   lang: "ms" | "en";
   onLangToggle: () => void;
   onAlertClick?: () => void;
+  onMenuClick?: () => void;
 }
 
 export default function Navbar({
@@ -16,6 +17,7 @@ export default function Navbar({
   lang,
   onLangToggle,
   onAlertClick,
+  onMenuClick,
 }: NavbarProps) {
   return (
     <nav
@@ -36,6 +38,23 @@ export default function Navbar({
     >
       {/* Left: Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {onMenuClick && (
+          <button
+            onClick={onMenuClick}
+            style={{
+              padding: "6px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--text-primary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Menu size={20} />
+          </button>
+        )}
         <div
           style={{
             width: 28,
@@ -75,7 +94,7 @@ export default function Navbar({
         }}
       >
         <span>{lang === "ms" ? "Semua Ladang" : "All Fields"}</span>
-        {selectedFieldName && (
+        {!onMenuClick && selectedFieldName && (
           <>
             <ChevronRight size={12} style={{ opacity: 0.5 }} />
             <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>

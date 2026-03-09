@@ -33,6 +33,7 @@ interface BottomPanelProps {
   /** Lifted state so page.tsx can compute panel height for the indices legend offset */
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
+  isMobile?: boolean;
 }
 
 export default function BottomPanel({
@@ -44,6 +45,7 @@ export default function BottomPanel({
   onDateSelect,
   expanded,
   onExpandedChange,
+  isMobile = false,
 }: BottomPanelProps) {
   const { gdd, loading: gddLoading } = useGDD(selectedField);
 
@@ -60,7 +62,7 @@ export default function BottomPanel({
       style={{
         position: "fixed",
         bottom: 0,
-        left: sidebarWidth,
+        left: isMobile ? 0 : sidebarWidth,
         right: 0,
         height: panelHeight,
         background: "rgba(22, 27, 34, 0.97)",
@@ -196,7 +198,8 @@ export default function BottomPanel({
           style={{
             flex: 1,
             display: "flex",
-            overflow: "hidden",
+            flexDirection: isMobile ? "column" : "row",
+            overflow: isMobile ? "auto" : "hidden",
           }}
         >
           {/* Main chart area */}
@@ -232,9 +235,11 @@ export default function BottomPanel({
           {/* GDD Strip */}
           <div
             style={{
-              width: "130px",
+              width: isMobile ? "100%" : "130px",
+              height: isMobile ? "80px" : "auto",
               flexShrink: 0,
-              borderLeft: "1px solid var(--border-subtle)",
+              borderLeft: isMobile ? "none" : "1px solid var(--border-subtle)",
+              borderTop: isMobile ? "1px solid var(--border-subtle)" : "none",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

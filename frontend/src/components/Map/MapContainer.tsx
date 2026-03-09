@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Wheat, Pencil } from "lucide-react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
 
 interface Field {
   id: string;
@@ -284,7 +286,7 @@ function AddFieldModal({
             >
               {lang === "ms" ? "Nama Ladang *" : "Field Name *"}
             </label>
-            <input
+            <Input
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -294,18 +296,6 @@ function AddFieldModal({
                   ? "cth: Petak G — Ladang Saya"
                   : "e.g. Plot G — My Field"
               }
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "9px 12px",
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                color: "var(--text-primary)",
-                fontSize: "0.875rem",
-                fontFamily: "IBM Plex Sans, sans-serif",
-                outline: "none",
-              }}
             />
           </div>
 
@@ -362,67 +352,24 @@ function AddFieldModal({
             >
               {lang === "ms" ? "Tarikh Menyemai *" : "Sowing Date *"}
             </label>
-            <input
+            <Input
               type="date"
               value={sowingDate}
               onChange={(e) => setSowingDate(e.target.value)}
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "9px 12px",
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border)",
-                borderRadius: "4px",
-                color: "var(--text-primary)",
-                fontSize: "0.875rem",
-                fontFamily: "IBM Plex Sans, sans-serif",
-                outline: "none",
-              }}
             />
           </div>
         </div>
 
         {/* Actions */}
         <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-          <button
-            onClick={onCancel}
-            style={{
-              flex: 1,
-              padding: "10px",
-              background: "transparent",
-              border: "1px solid var(--border)",
-              borderRadius: "8px",
-              color: "var(--text-secondary)",
-              fontSize: "0.875rem",
-              fontFamily: "IBM Plex Sans, sans-serif",
-              cursor: "pointer",
-            }}
-          >
+          <Button variant="outline" onClick={onCancel} style={{ flex: 1 }}>
             {lang === "ms" ? "Batal" : "Cancel"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleConfirm}
-            disabled={!name.trim()}
-            style={{
-              flex: 2,
-              padding: "10px",
-              background:
-                name.trim() && sowingDate
-                  ? "var(--accent-green)"
-                  : "var(--bg-elevated)",
-              border: `1px solid ${name.trim() && sowingDate ? "var(--accent-green)" : "var(--border)"}`,
-              borderRadius: "8px",
-              color:
-                name.trim() && sowingDate ? "#0d1117" : "var(--text-muted)",
-              fontSize: "0.875rem",
-              fontFamily: "IBM Plex Sans, sans-serif",
-              fontWeight: 600,
-              cursor: name.trim() && sowingDate ? "pointer" : "not-allowed",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-            }}
+            disabled={!name.trim() || !sowingDate}
+            style={{ flex: 2 }}
           >
             <Wheat
               size={14}
@@ -432,7 +379,7 @@ function AddFieldModal({
               strokeWidth={2}
             />
             {lang === "ms" ? "Tambah Ladang" : "Add Field"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
