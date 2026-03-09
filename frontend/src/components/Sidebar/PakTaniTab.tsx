@@ -97,28 +97,31 @@ export default function PakTaniTab({
   const daysSince = stageResult.daysSince as number;
 
   const lastUserMessage =
-    [...messages]
-      .reverse()
-      .find((m) => m.role === "user" && !m.isImage)?.content || "";
+    [...messages].reverse().find((m) => m.role === "user" && !m.isImage)
+      ?.content || "";
   const lastAssistantMessage =
     [...messages].reverse().find((m) => m.role === "assistant")?.content || "";
 
-  const suggestedQs = selectedField
-    ? getDemoSuggestedQuestionsForField(
-        selectedField.id,
+  let suggestedQs: any[] = [];
+  if (selectedField) {
+    const demoQs = getDemoSuggestedQuestionsForField(
+      selectedField.id,
+      lastUserMessage,
+      messages
+        .filter((m) => m.role === "user" && !m.isImage)
+        .map((m) => m.content),
+    );
+    if (demoQs && demoQs.length > 0) {
+      suggestedQs = demoQs;
+    } else if (stage) {
+      suggestedQs = getSuggestedQuestions(
+        stage.id,
+        selectedField.activeAlert?.type || null,
         lastUserMessage,
-        messages
-          .filter((m) => m.role === "user" && !m.isImage)
-          .map((m) => m.content),
-      )
-    : stage
-      ? getSuggestedQuestions(
-          stage.id,
-          selectedField?.activeAlert?.type || null,
-          lastUserMessage,
-          lastAssistantMessage,
-        )
-      : [];
+        lastAssistantMessage,
+      );
+    }
+  }
 
   const handleSend = () => {
     if (!input.trim() || !selectedField) return;

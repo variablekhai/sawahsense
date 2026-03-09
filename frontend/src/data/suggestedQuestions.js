@@ -496,7 +496,7 @@ const getFlowFollowups = (
 
 export const getSuggestedQuestions = (
   stageId,
-  alertType = null,
+  alertType,
   lastUserMessage = "",
   lastAssistantMessage = "",
 ) => {
