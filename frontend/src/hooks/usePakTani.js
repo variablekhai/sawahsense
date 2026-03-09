@@ -268,9 +268,9 @@ export function usePakTani(onAddTask) {
         return;
       }
 
-      // Complete scripted QnA flow for demo fields (with citations in answers)
+      // Scripted Q&A for demo fields
       if (field?.id) {
-        const scriptedAnswer = getDemoAnswerForField(field.id, userMessage);
+        const scriptedAnswer = getDemoAnswerForField(field.id, userMessage, currentLang);
         if (scriptedAnswer) {
           const newHistory = [
             ...updatedMessages,
@@ -278,19 +278,12 @@ export function usePakTani(onAddTask) {
           ];
           setMessages([
             ...newHistory,
-            {
-              role: "assistant",
-              content: t(
-                currentLang,
-                "Mencari jawapan rujukan demo...",
-                "Finding answer from demo references...",
-              ),
-            },
+            { role: "assistant", content: "..." },
           ]);
           setLoading(true);
           setError(null);
 
-          await new Promise((r) => setTimeout(r, 900));
+          await new Promise((r) => setTimeout(r, 800));
 
           setMessages([
             ...newHistory,

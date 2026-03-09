@@ -111,6 +111,7 @@ export default function PakTaniTab({
         .filter((m) => m.role === "user" && !m.isImage)
         .map((m) => m.content),
     );
+    // lang is used when rendering: q.ms vs q.en — no change needed here
     if (demoQs && demoQs.length > 0) {
       suggestedQs = demoQs;
     } else if (stage) {

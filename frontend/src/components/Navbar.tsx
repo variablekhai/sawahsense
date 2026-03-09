@@ -1,6 +1,7 @@
 "use client";
 
-import { Satellite, Bell, ChevronRight, Menu } from "lucide-react";
+import Image from "next/image";
+import { Bell, ChevronRight, Menu } from "lucide-react";
 
 interface NavbarProps {
   selectedFieldName?: string | null;
@@ -57,20 +58,14 @@ export default function Navbar({
             <Menu size={20} />
           </button>
         )}
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: "6px",
-            background:
-              "linear-gradient(135deg, var(--accent-green) 0%, var(--accent-teal) 100%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Satellite size={14} color="#0d1117" strokeWidth={2.5} />
-        </div>
+        <Image
+          src="/logo.png"
+          alt="SawahSense logo"
+          width={28}
+          height={28}
+          style={{ borderRadius: "6px" }}
+          priority
+        />
         <span
           style={{
             fontFamily: "Syne, sans-serif",

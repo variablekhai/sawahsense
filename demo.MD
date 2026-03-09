@@ -288,22 +288,47 @@ This is your strongest demo moment. Show Petak D's November 4 NDVI heatmap: perf
 
 ### Act 4: Pak Tani AI & Image Diagnostics (Interactive)
 
-To bring the solution together, switch to the **Pak Tani Tab** in the sidebar. This showcases the RAG (Retrieval-Augmented Generation) advisory capability and the computer vision simulation.
+Switch to the **Pak Tani Tab** in the sidebar. Walk through two scripted conversations — one for each active alert — then close with the image diagnostic.
 
-1. **RAG Advisory (Triggered via context):**
-   - Make sure a field with an active alert is selected (e.g., Petak C for BLB or Petak D for LSWI drop).
-   - Type a question like _"What is the advice?"_ or _"Macam mana nak selesaikan masalah ni?"_ and send.
-   - Pak Tani will respond with a step-by-step mitigation plan, citing specific agriculture manuals (e.g., _Manual Pengairan Tanaman Padi IADA_ or _Panduan Jabatan Pertanian_). It will also proactively ask if you want it to create a scouting/treatment task.
-2. **Image Diagnostics (Triggered via UI):**
-   - Click the **Camera Icon (📷)** next to the chat input to open the upload menu.
-   - Choose **"Muat naik status hijau/sihat"** to simulate uploading a healthy crop photo. Pak Tani will analyse it and report normal growth.
-   - Choose **"Muat naik sampel BLB"** to simulate a farmer taking a close-up photo of the yellowing leaves from Petak C. Pak Tani will process the image, detect the lesions, diagnose it as **Bacterial Leaf Blight**, and suggest a scouting task.
-3. **Automated Task Creation:**
-   - When Pak Tani asks if you want to set up a task (after the RAG advisory or the BLB image diagnostic), simply reply with **"ya"**, **"yes"**, or **"boleh"**.
-   - Pak Tani will confirm the task is being created.
-   - Switch to the **Tugas (Tasks) Tab** to show that the task (e.g., _"Scouting & Semburan BLB"_) has been automatically added to the farmer's pending tasks, complete with context, deadline, and field location.
+#### Conversation 1 — Petak C (BLB)
 
-**Message: SawahSense doesn't just alert you to a problem on a map; it acts as an agronomist in your pocket, advising you on the exact treatment SOP and validating field imagery.**
+Select **Petak C**. Pak Tani's opening insight references the satellite drop and flags the southeast corner. Then ask:
+
+> **"What should I do about the BLB alert in Petak C?"**
+
+Pak Tani responds immediately with three specific steps: close the shared water gate, walk the southeast rows to count infected plants, and contact IADA BLS if infection is deeper than 3 rows. It references the 2016 Sekinchan BLB season where delayed action led to 50–70% yield loss.
+
+The suggested follow-up chips update automatically. Click:
+
+> **"How much yield could I lose?"**
+
+Pak Tani gives a concrete projection: acting within 72 hours limits losses to ~20–25%, versus potential 50–70% if left unchecked — real numbers tied to this specific 3.1 ha plot.
+
+Then click:
+
+> **"Can you create a scouting task for Petak C?"**
+
+Pak Tani confirms the task is created. Switch to the **Tasks Tab** to show _"Scouting & Semburan BLB (Petak C)"_ appeared with a due date and field context.
+
+#### Conversation 2 — Petak D (Water stress)
+
+Select **Petak D**. Ask:
+
+> **"Petak D looks green — why is there a warning?"**
+
+Pak Tani explains the LSWI insight directly: NDVI and EVI are still green at 0.76 and 0.69, but LSWI collapsed from 0.30 to 0.18 in 5 days. The plant's internal water content is falling before any visible symptoms appear. By the time NDVI drops, 60–70% of grain fill damage is already done. This is the core demo moment — NDVI alone would have missed this entirely.
+
+Click the follow-up:
+
+> **"What should I check at the water gate?"**
+
+Pak Tani gives a 3-point inspection: gate position, channel mouth debris, walk the channel for cracks. Clear, actionable, no jargon.
+
+#### Image Diagnostics
+
+Still on Petak C, click the **Camera icon** next to the input. Choose **"Upload BLB sample"**. Pak Tani analyses the simulated leaf photo, identifies lesion patterns consistent with Bacterial Leaf Blight, and asks if you want to log a scouting task. Reply **"yes"**.
+
+**Message: SawahSense doesn't just alert you to a problem — it tells you exactly what to do, why, and what's at stake. That's the difference between a dashboard and an agronomist in your pocket.**
 
 ### Closing: The Numbers
 

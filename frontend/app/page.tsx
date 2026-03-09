@@ -59,7 +59,7 @@ const MapContainer = dynamic(
 type TabId = "fields" | "tasks" | "alerts" | "pakTani";
 
 export default function Home() {
-  const [lang, setLang] = useState<"ms" | "en">("ms");
+  const [lang, setLang] = useState<"ms" | "en">("en");
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("fields");
   const [activeIndex, setActiveIndex] = useState<"NDVI" | "EVI" | "LSWI">(
