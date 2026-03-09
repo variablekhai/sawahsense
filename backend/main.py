@@ -43,6 +43,7 @@ class PakTaniRequest(BaseModel):
     fieldContext: Dict[str, Any]
     mode: str
     messages: List[MessageItem]
+    lang: Optional[str] = None
 
 class WhatsAppRequest(BaseModel):
     recipientName: str
@@ -179,10 +180,12 @@ async def pak_tani(request: PakTaniRequest):
         api_messages = []
         
         if request.mode == "initial_insight":
-            api_messages = [{
-                "role": "user",
-                "content": f"{context_str}\n\nBerikan nasihat ringkas tentang keadaan semasa ladang ini. Fokus pada perkara paling penting yang perlu perhatian petani sekarang."
-            }]
+            lang = (request.lang or "ms").lower()
+            if lang == "en":
+                prompt = f"{context_str}\n\nGive a brief insight on the current state of this field. Focus on the most important thing the farmer should pay attention to now. Respond in English."
+            else:
+                prompt = f"{context_str}\n\nBerikan nasihat ringkas tentang keadaan semasa ladang ini. Fokus pada perkara paling penting yang perlu perhatian petani sekarang."
+            api_messages = [{"role": "user", "content": prompt}]
         else:
             for i, msg in enumerate(request.messages):
                 content = f"{context_str}\n\n{msg.content}" if i == 0 else msg.content

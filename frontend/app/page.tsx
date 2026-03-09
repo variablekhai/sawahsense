@@ -137,18 +137,18 @@ export default function Home() {
 
   const handleLoadInsight = useCallback(() => {
     if (selectedField) {
-      loadFieldInsight(selectedField);
+      loadFieldInsight(selectedField, lang);
     }
-  }, [selectedField, loadFieldInsight]);
+  }, [selectedField, loadFieldInsight, lang]);
 
   const handleTabChange = useCallback(
     (tab: TabId) => {
       setActiveTab(tab);
       if (tab === "pakTani" && selectedField) {
-        loadFieldInsight(selectedField);
+        loadFieldInsight(selectedField, lang);
       }
     },
-    [selectedField, loadFieldInsight],
+    [selectedField, loadFieldInsight, lang],
   );
 
   const handlePakTaniSend = useCallback(
@@ -162,8 +162,8 @@ export default function Home() {
 
   const handleOpenFullPanel = useCallback(() => {
     setActiveTab("pakTani");
-    if (selectedField) loadFieldInsight(selectedField);
-  }, [selectedField, loadFieldInsight]);
+    if (selectedField) loadFieldInsight(selectedField, lang);
+  }, [selectedField, loadFieldInsight, lang]);
 
   useEffect(() => {
     clearConversation();

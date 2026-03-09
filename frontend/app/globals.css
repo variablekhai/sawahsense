@@ -324,7 +324,7 @@ select:focus {
 }
 /* Combined selector beats Leaflet's own .leaflet-tooltip specificity */
 .leaflet-tooltip.sawahsense-tooltip {
-  background: rgba(13, 17, 23, 0.97) !important;
+  background: rgba(22, 27, 34, 0.97) !important;
   border: 1px solid #30363d !important;
   border-radius: 8px !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
