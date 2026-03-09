@@ -42,14 +42,16 @@ export default function Navbar({
           <button
             onClick={onMenuClick}
             style={{
-              padding: "6px",
+              padding: "4px",
               background: "transparent",
               border: "none",
+              borderRadius: "6px",
               cursor: "pointer",
               color: "var(--text-primary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              marginRight: "4px",
             }}
           >
             <Menu size={20} />
@@ -83,26 +85,28 @@ export default function Navbar({
       </div>
 
       {/* Center: Breadcrumb */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          fontSize: "0.8125rem",
-          color: "var(--text-secondary)",
-          fontFamily: "IBM Plex Sans, sans-serif",
-        }}
-      >
-        <span>{lang === "ms" ? "Semua Ladang" : "All Fields"}</span>
-        {!onMenuClick && selectedFieldName && (
-          <>
-            <ChevronRight size={12} style={{ opacity: 0.5 }} />
-            <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
-              {selectedFieldName}
-            </span>
-          </>
-        )}
-      </div>
+      {!onMenuClick && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "0.8125rem",
+            color: "var(--text-secondary)",
+            fontFamily: "IBM Plex Sans, sans-serif",
+          }}
+        >
+          <span>{lang === "ms" ? "Semua Ladang" : "All Fields"}</span>
+          {selectedFieldName && (
+            <>
+              <ChevronRight size={12} style={{ opacity: 0.5 }} />
+              <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                {selectedFieldName}
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Right: Controls */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

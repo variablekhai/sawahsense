@@ -69,15 +69,22 @@ export default function Home() {
   const [dataSource] = useState<"live" | "demo">("demo");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [bottomPanelExpanded, setBottomPanelExpanded] = useState(false);
-  const panelHeight = bottomPanelExpanded ? 280 : 40;
+  const isMobile = useIsMobile();
+  const panelHeight = bottomPanelExpanded
+    ? isMobile
+      ? 380
+      : 280
+    : isMobile
+      ? 48
+      : 40;
 
   // Imperative ref so sidebar "Add Field" button can trigger map draw mode
   const startDrawingRef = useRef<(() => void) | null>(null);
   const cancelDrawingRef = useRef<(() => void) | null>(null);
   const [isAddingField, setIsAddingField] = useState(false);
 
-  const isMobile = useIsMobile();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Extra fields from user-drawn polygons
   const [userFields, setUserFields] = useState<Field[]>([]);
@@ -183,7 +190,7 @@ export default function Home() {
     setActiveTab("fields");
   }, []);
 
-  const sidebarWidth = 320;
+  const sidebarWidth = isMobile ? 0 : sidebarCollapsed ? 0 : 320;
 
   return (
     <div
@@ -221,45 +228,40 @@ export default function Home() {
       )}
 
       {/* Sidebar */}
-      <div
-        style={{
-          position: "fixed",
-          top: "var(--navbar-height)",
-          bottom: 0,
-          left: isMobile ? (mobileSidebarOpen ? 0 : "-100%") : 0,
-          width: isMobile ? "80%" : "var(--sidebar-width)",
-          maxWidth: "400px",
-          zIndex: 900,
-          transition: "left 0.3s ease-in-out",
-          background: "var(--bg-base)",
+      <Sidebar
+        fields={fields}
+        selectedFieldId={selectedFieldId}
+        onFieldSelect={(id) => {
+          handleFieldSelect(id);
+          if (isMobile) setMobileSidebarOpen(false);
         }}
-      >
-        <Sidebar
-          fields={fields}
-          selectedFieldId={selectedFieldId}
-          onFieldSelect={(id) => {
-            handleFieldSelect(id);
-            if (isMobile) setMobileSidebarOpen(false);
-          }}
-          lang={lang}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          pakTaniMessages={pakTaniMessages}
-          pakTaniLoading={pakTaniLoading}
-          pakTaniInsightLoading={pakTaniInsightLoading}
-          onPakTaniSend={handlePakTaniSend}
-          onLoadInsight={handleLoadInsight}
-          onAddField={() => startDrawingRef.current?.()}
-          isAddingField={isAddingField}
-          onCancelAddField={() => cancelDrawingRef.current?.()}
-          tasks={tasks}
-          setTasks={setTasks}
-          isMobile={isMobile}
-        />
-      </div>
+        lang={lang}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        pakTaniMessages={pakTaniMessages}
+        pakTaniLoading={pakTaniLoading}
+        pakTaniInsightLoading={pakTaniInsightLoading}
+        onPakTaniSend={handlePakTaniSend}
+        onLoadInsight={handleLoadInsight}
+        onAddField={() => startDrawingRef.current?.()}
+        isAddingField={isAddingField}
+        onCancelAddField={() => cancelDrawingRef.current?.()}
+        tasks={tasks}
+        setTasks={setTasks}
+        isMobile={isMobile}
+        collapsed={isMobile ? !mobileSidebarOpen : sidebarCollapsed}
+        onToggleCollapse={() => {
+          if (isMobile) {
+            setMobileSidebarOpen(!mobileSidebarOpen);
+          } else {
+            setSidebarCollapsed(!sidebarCollapsed);
+          }
+        }}
+      />
 
       {/* Main map area */}
       <div
+        className="panel-transition"
         style={{
           position: "fixed",
           top: "var(--navbar-height)",

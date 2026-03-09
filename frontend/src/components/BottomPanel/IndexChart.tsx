@@ -51,7 +51,12 @@ interface CustomTooltipProps {
   lang: "ms" | "en";
 }
 
-const CustomTooltip = ({ active, payload, label, lang }: CustomTooltipProps) => {
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+  lang,
+}: CustomTooltipProps) => {
   if (!active || !payload || !payload.length) return null;
   const tooltipPayload = payload as TooltipEntry[];
   const payloadFiltered = tooltipPayload.filter((entry) => {
@@ -152,7 +157,12 @@ function buildEstimatedSeries(
     }
 
     for (let k = gapStart; k <= gapEnd; k++) {
-      if (prevVal !== null && nextVal !== null && prevIdx >= 0 && nextIdx >= 0) {
+      if (
+        prevVal !== null &&
+        nextVal !== null &&
+        prevIdx >= 0 &&
+        nextIdx >= 0
+      ) {
         const ratio = (k - prevIdx) / (nextIdx - prevIdx);
         estimated[k] = prevVal + (nextVal - prevVal) * ratio;
       } else if (prevVal !== null) {
@@ -182,9 +192,13 @@ export default function IndexChart({
     eviDisplay: point.cloudPct > 40 ? null : point.evi,
     lswiDisplay: point.cloudPct > 40 ? null : point.lswi,
   }));
-  const ndviEstimated = buildEstimatedSeries(measured.map((p) => p.ndviDisplay));
+  const ndviEstimated = buildEstimatedSeries(
+    measured.map((p) => p.ndviDisplay),
+  );
   const eviEstimated = buildEstimatedSeries(measured.map((p) => p.eviDisplay));
-  const lswiEstimated = buildEstimatedSeries(measured.map((p) => p.lswiDisplay));
+  const lswiEstimated = buildEstimatedSeries(
+    measured.map((p) => p.lswiDisplay),
+  );
 
   const displayData: ChartPoint[] = timeSeries.map((point, idx) => ({
     ...point,
@@ -218,144 +232,163 @@ export default function IndexChart({
   }
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart
-        data={displayData}
-        margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        overflowX: "auto",
+        overflowY: "hidden",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          minWidth: "600px",
+          height: "100%",
+          paddingBottom: "8px",
+        }}
       >
-        <CartesianGrid
-          strokeDasharray="3 3"
-          stroke="rgba(48, 54, 61, 0.5)"
-          vertical={false}
-        />
-        <XAxis
-          dataKey="dateShort"
-          tick={{
-            fill: "var(--text-muted)",
-            fontSize: "0.5625rem",
-            fontFamily: "IBM Plex Mono, monospace",
-          }}
-          tickLine={false}
-          axisLine={{ stroke: "var(--border)" }}
-          interval="preserveStartEnd"
-        />
-        <YAxis
-          domain={[0, 1]}
-          tick={{
-            fill: "var(--text-muted)",
-            fontSize: "0.5625rem",
-            fontFamily: "IBM Plex Mono, monospace",
-          }}
-          tickLine={false}
-          axisLine={false}
-          tickCount={5}
-        />
-        <Tooltip content={<CustomTooltip lang={lang} />} />
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={displayData}
+            margin={{ top: 8, right: 16, left: -20, bottom: 0 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="rgba(48, 54, 61, 0.5)"
+              vertical={false}
+            />
+            <XAxis
+              dataKey="dateShort"
+              tick={{
+                fill: "var(--text-muted)",
+                fontSize: "0.5625rem",
+                fontFamily: "IBM Plex Mono, monospace",
+              }}
+              tickLine={false}
+              axisLine={{ stroke: "var(--border)" }}
+              interval="preserveStartEnd"
+            />
+            <YAxis
+              domain={[0, 1]}
+              tick={{
+                fill: "var(--text-muted)",
+                fontSize: "0.5625rem",
+                fontFamily: "IBM Plex Mono, monospace",
+              }}
+              tickLine={false}
+              axisLine={false}
+              tickCount={5}
+            />
+            <Tooltip content={<CustomTooltip lang={lang} />} />
 
-        {/* Stage transition lines */}
-        {stageTransitions.map((t) => (
-          <ReferenceLine
-            key={t.date}
-            x={t.date}
-            stroke={t.color}
-            strokeDasharray="3 3"
-            strokeOpacity={0.5}
-            label={{
-              value: t.label,
-              position: "insideTopRight",
-              fill: t.color,
-              fontSize: 8,
-              fontFamily: "IBM Plex Mono, monospace",
-            }}
-          />
-        ))}
+            {/* Stage transition lines */}
+            {stageTransitions.map((t) => (
+              <ReferenceLine
+                key={t.date}
+                x={t.date}
+                stroke={t.color}
+                strokeDasharray="3 3"
+                strokeOpacity={0.5}
+                label={{
+                  value: t.label,
+                  position: "insideTopRight",
+                  fill: t.color,
+                  fontSize: 8,
+                  fontFamily: "IBM Plex Mono, monospace",
+                }}
+              />
+            ))}
 
-        {/* Selected date line */}
-        {selectedDate && (
-          <ReferenceLine
-            x={new Date(selectedDate).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-            })}
-            stroke="var(--accent-blue)"
-            strokeDasharray="6 3"
-            strokeWidth={2}
-          />
-        )}
+            {/* Selected date line */}
+            {selectedDate && (
+              <ReferenceLine
+                x={new Date(selectedDate).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                })}
+                stroke="var(--accent-blue)"
+                strokeDasharray="6 3"
+                strokeWidth={2}
+              />
+            )}
 
-        {/* Legend */}
-        <Legend
-          iconType="line"
-          iconSize={12}
-          wrapperStyle={{
-            fontSize: "0.625rem",
-            fontFamily: "IBM Plex Mono, monospace",
-            paddingTop: "4px",
-          }}
-        />
+            {/* Legend */}
+            <Legend
+              iconType="line"
+              iconSize={12}
+              wrapperStyle={{
+                fontSize: "0.625rem",
+                fontFamily: "IBM Plex Mono, monospace",
+                paddingTop: "4px",
+              }}
+            />
 
-        <Line
-          type="monotone"
-          dataKey="ndviDisplay"
-          name="NDVI"
-          stroke="#3fb950"
-          strokeWidth={1.5}
-          dot={false}
-          connectNulls={false}
-        />
-        <Line
-          type="monotone"
-          dataKey="ndviEstimated"
-          name="NDVI (Est.)"
-          stroke="#3fb950"
-          strokeWidth={1.5}
-          dot={false}
-          connectNulls={false}
-          strokeDasharray="4 4"
-          legendType="none"
-        />
-        <Line
-          type="monotone"
-          dataKey="eviDisplay"
-          name="EVI"
-          stroke="#39d353"
-          strokeWidth={1.5}
-          dot={false}
-          connectNulls={false}
-          strokeDasharray="none"
-        />
-        <Line
-          type="monotone"
-          dataKey="eviEstimated"
-          name="EVI (Est.)"
-          stroke="#39d353"
-          strokeWidth={1.5}
-          dot={false}
-          connectNulls={false}
-          strokeDasharray="4 4"
-          legendType="none"
-        />
-        <Line
-          type="monotone"
-          dataKey="lswiDisplay"
-          name="LSWI"
-          stroke="#58a6ff"
-          strokeWidth={1.5}
-          dot={false}
-          connectNulls={false}
-        />
-        <Line
-          type="monotone"
-          dataKey="lswiEstimated"
-          name="LSWI (Est.)"
-          stroke="#58a6ff"
-          strokeWidth={1.5}
-          dot={false}
-          connectNulls={false}
-          strokeDasharray="4 4"
-          legendType="none"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+            <Line
+              type="monotone"
+              dataKey="ndviDisplay"
+              name="NDVI"
+              stroke="#3fb950"
+              strokeWidth={1.5}
+              dot={false}
+              connectNulls={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="ndviEstimated"
+              name="NDVI (Est.)"
+              stroke="#3fb950"
+              strokeWidth={1.5}
+              dot={false}
+              connectNulls={false}
+              strokeDasharray="4 4"
+              legendType="none"
+            />
+            <Line
+              type="monotone"
+              dataKey="eviDisplay"
+              name="EVI"
+              stroke="#39d353"
+              strokeWidth={1.5}
+              dot={false}
+              connectNulls={false}
+              strokeDasharray="none"
+            />
+            <Line
+              type="monotone"
+              dataKey="eviEstimated"
+              name="EVI (Est.)"
+              stroke="#39d353"
+              strokeWidth={1.5}
+              dot={false}
+              connectNulls={false}
+              strokeDasharray="4 4"
+              legendType="none"
+            />
+            <Line
+              type="monotone"
+              dataKey="lswiDisplay"
+              name="LSWI"
+              stroke="#58a6ff"
+              strokeWidth={1.5}
+              dot={false}
+              connectNulls={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="lswiEstimated"
+              name="LSWI (Est.)"
+              stroke="#58a6ff"
+              strokeWidth={1.5}
+              dot={false}
+              connectNulls={false}
+              strokeDasharray="4 4"
+              legendType="none"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 }

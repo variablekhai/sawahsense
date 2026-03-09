@@ -657,7 +657,19 @@ export default function MapContainer({
 
   useEffect(() => {
     initMap();
+
+    let observer: ResizeObserver | null = null;
+    if (mapRef.current) {
+      observer = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      });
+      observer.observe(mapRef.current);
+    }
+
     return () => {
+      if (observer) observer.disconnect();
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;

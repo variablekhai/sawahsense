@@ -49,6 +49,8 @@ interface SidebarProps {
   tasks?: any[];
   setTasks?: any;
   isMobile?: boolean;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 type TabId = "fields" | "tasks" | "alerts" | "pakTani";
@@ -85,9 +87,9 @@ export default function Sidebar({
   tasks = [],
   setTasks,
   isMobile = false,
+  collapsed = false,
+  onToggleCollapse,
 }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
-
   const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
   const alertCount = fields.filter((f) => f.alertLevel !== "healthy").length;
 
@@ -99,11 +101,13 @@ export default function Sidebar({
         style={{
           position: "fixed",
           top: "var(--navbar-height)",
-          left: 0,
+          left: isMobile && collapsed ? "-100%" : 0,
           bottom: 0,
-          width: collapsed ? "0px" : SIDEBAR_WIDTH,
+          width: isMobile ? "80%" : collapsed ? "0px" : SIDEBAR_WIDTH,
+          maxWidth: isMobile ? "400px" : "none",
           background: "var(--bg-surface)",
-          borderRight: collapsed ? "none" : "1px solid var(--border)",
+          borderRight:
+            !isMobile && collapsed ? "none" : "1px solid var(--border)",
           display: "flex",
           flexDirection: "column",
           zIndex: 900,
@@ -241,9 +245,9 @@ export default function Sidebar({
       </div>
 
       {/* ── Collapse toggle — rendered OUTSIDE sidebar so overflow:hidden can't clip it ── */}
-      {!isMobile && (
+      {!isMobile && onToggleCollapse && (
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={onToggleCollapse}
           title={
             collapsed
               ? lang === "ms"

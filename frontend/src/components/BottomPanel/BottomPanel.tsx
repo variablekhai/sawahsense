@@ -49,7 +49,7 @@ export default function BottomPanel({
 }: BottomPanelProps) {
   const { gdd, loading: gddLoading } = useGDD(selectedField);
 
-  const panelHeight = expanded ? 280 : 40;
+  const panelHeight = expanded ? (isMobile ? 380 : 280) : isMobile ? 48 : 40;
 
   // Use acquisitionDates for datechips if available (richer cloud data),
   // else fall back to timeSeries so legacy/user-drawn fields still work
@@ -77,11 +77,11 @@ export default function BottomPanel({
       {/* Collapsed bar / Expand header */}
       <div
         style={{
-          height: 40,
+          minHeight: isMobile ? 48 : 40,
           flexShrink: 0,
           display: "flex",
           alignItems: "center",
-          padding: "0 16px",
+          padding: "6px 16px",
           gap: "16px",
           cursor: "pointer",
           borderBottom: expanded ? "1px solid var(--border-subtle)" : "none",
@@ -94,7 +94,8 @@ export default function BottomPanel({
             flex: 1,
             display: "flex",
             alignItems: "center",
-            gap: "10px",
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            gap: "8px",
           }}
         >
           {selectedField ? (
@@ -115,7 +116,7 @@ export default function BottomPanel({
               <div
                 style={{
                   display: "flex",
-                  gap: "10px",
+                  gap: "8px",
                   fontFamily: "IBM Plex Mono, monospace",
                   fontSize: "0.6875rem",
                 }}
@@ -126,15 +127,17 @@ export default function BottomPanel({
                 <span style={{ color: "#74c476" }}>
                   EVI {selectedField.latestIndices.evi.toFixed(2)}
                 </span>
-                <span style={{ color: "#58a6ff" }}>
-                  LSWI {selectedField.latestIndices.lswi.toFixed(2)}
-                </span>
+                {!isMobile && (
+                  <span style={{ color: "#58a6ff" }}>
+                    LSWI {selectedField.latestIndices.lswi.toFixed(2)}
+                  </span>
+                )}
               </div>
 
               {/* Demo/live badge */}
               <span
                 style={{
-                  marginLeft: 4,
+                  marginLeft: isMobile ? 0 : 4,
                   fontSize: "0.5625rem",
                   fontFamily: "IBM Plex Mono, monospace",
                   color:
@@ -144,6 +147,7 @@ export default function BottomPanel({
                   display: "flex",
                   alignItems: "center",
                   gap: "3px",
+                  whiteSpace: "nowrap",
                 }}
               >
                 <span
@@ -185,10 +189,13 @@ export default function BottomPanel({
             color: "var(--text-muted)",
             fontSize: "0.6875rem",
             fontFamily: "IBM Plex Mono, monospace",
+            whiteSpace: "nowrap",
           }}
         >
-          <span>{lang === "ms" ? "SEJARAH INDEKS" : "INDEX HISTORY"}</span>
-          {expanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
+          {!isMobile && (
+            <span>{lang === "ms" ? "SEJARAH INDEKS" : "INDEX HISTORY"}</span>
+          )}
+          {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         </div>
       </div>
 
@@ -199,13 +206,16 @@ export default function BottomPanel({
             flex: 1,
             display: "flex",
             flexDirection: isMobile ? "column" : "row",
-            overflow: isMobile ? "auto" : "hidden",
+            overflowY: isMobile ? "auto" : "hidden",
+            overflowX: "hidden",
+            WebkitOverflowScrolling: "touch",
           }}
         >
           {/* Main chart area */}
           <div
             style={{
-              flex: 1,
+              flex: isMobile ? "none" : 1,
+              height: isMobile ? "280px" : "auto", // Ensure the chart gets its space before scrolling
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -222,7 +232,7 @@ export default function BottomPanel({
             </div>
 
             {/* Date carousel — uses acquisitionDates when available */}
-            <div style={{ flexShrink: 0, padding: "0 16px 8px" }}>
+            <div style={{ flexShrink: 0, padding: "8px 16px 12px" }}>
               <DateCarousel
                 timeSeries={carouselDates}
                 selectedDate={selectedDate}
@@ -236,13 +246,15 @@ export default function BottomPanel({
           <div
             style={{
               width: isMobile ? "100%" : "130px",
-              height: isMobile ? "80px" : "auto",
+              minHeight: isMobile ? "100px" : "auto",
               flexShrink: 0,
               borderLeft: isMobile ? "none" : "1px solid var(--border-subtle)",
               borderTop: isMobile ? "1px solid var(--border-subtle)" : "none",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              paddingBottom: isMobile ? "16px" : 0, // Extra padding at bottom for mobile scrolling
+              paddingTop: isMobile ? "8px" : 0,
             }}
           >
             <GDDStrip gdd={gdd} loading={gddLoading} lang={lang} />
