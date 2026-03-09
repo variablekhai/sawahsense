@@ -156,7 +156,7 @@ const INDEX_LEGENDS = {
 // ─── Add Field Modal ──────────────────────────────────────────────────────────
 interface AddFieldModalProps {
   draft: NewFieldDraft;
-  onConfirm: (name: string, variety: string) => void;
+  onConfirm: (name: string, variety: string, sowingDate: string) => void;
   onCancel: () => void;
   lang: "ms" | "en";
 }
@@ -169,6 +169,9 @@ function AddFieldModal({
 }: AddFieldModalProps) {
   const [name, setName] = useState("");
   const [variety, setVariety] = useState("MR263");
+  const [sowingDate, setSowingDate] = useState(
+    () => new Date().toISOString().split("T")[0],
+  );
 
   // Calculate approximate area from latlngs (shoelace formula)
   const areaSqkm = (() => {
@@ -187,8 +190,8 @@ function AddFieldModal({
   })();
 
   const handleConfirm = () => {
-    if (!name.trim()) return;
-    onConfirm(name.trim(), variety);
+    if (!name.trim() || !sowingDate) return;
+    onConfirm(name.trim(), variety, sowingDate);
   };
 
   return (
@@ -344,6 +347,39 @@ function AddFieldModal({
               <option value="lain">Lain-lain / Other</option>
             </select>
           </div>
+
+          {/* Sowing Date */}
+          <div>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "6px",
+                fontSize: "0.8125rem",
+                fontFamily: "IBM Plex Sans, sans-serif",
+                color: "var(--text-secondary)",
+                fontWeight: 500,
+              }}
+            >
+              {lang === "ms" ? "Tarikh Menyemai *" : "Sowing Date *"}
+            </label>
+            <input
+              type="date"
+              value={sowingDate}
+              onChange={(e) => setSowingDate(e.target.value)}
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                padding: "9px 12px",
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border)",
+                borderRadius: "4px",
+                color: "var(--text-primary)",
+                fontSize: "0.875rem",
+                fontFamily: "IBM Plex Sans, sans-serif",
+                outline: "none",
+              }}
+            />
+          </div>
         </div>
 
         {/* Actions */}
@@ -370,16 +406,18 @@ function AddFieldModal({
             style={{
               flex: 2,
               padding: "10px",
-              background: name.trim()
-                ? "var(--accent-green)"
-                : "var(--bg-elevated)",
-              border: `1px solid ${name.trim() ? "var(--accent-green)" : "var(--border)"}`,
+              background:
+                name.trim() && sowingDate
+                  ? "var(--accent-green)"
+                  : "var(--bg-elevated)",
+              border: `1px solid ${name.trim() && sowingDate ? "var(--accent-green)" : "var(--border)"}`,
               borderRadius: "8px",
-              color: name.trim() ? "#0d1117" : "var(--text-muted)",
+              color:
+                name.trim() && sowingDate ? "#0d1117" : "var(--text-muted)",
               fontSize: "0.875rem",
               fontFamily: "IBM Plex Sans, sans-serif",
               fontWeight: 600,
-              cursor: name.trim() ? "pointer" : "not-allowed",
+              cursor: name.trim() && sowingDate ? "pointer" : "not-allowed",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -388,7 +426,9 @@ function AddFieldModal({
           >
             <Wheat
               size={14}
-              color={name.trim() ? "#0d1117" : "var(--text-muted)"}
+              color={
+                name.trim() && sowingDate ? "#0d1117" : "var(--text-muted)"
+              }
               strokeWidth={2}
             />
             {lang === "ms" ? "Tambah Ladang" : "Add Field"}
@@ -857,7 +897,7 @@ export default function MapContainer({
 
   // Handle new field confirmed from modal
   const handleFieldConfirm = useCallback(
-    (name: string, variety: string) => {
+    (name: string, variety: string, sowingDate: string) => {
       if (!newFieldDraft || !mapInstanceRef.current) return;
       const map = mapInstanceRef.current;
 
@@ -912,6 +952,7 @@ export default function MapContainer({
           latestIndices: { ndvi: 0.45, evi: 0.38, lswi: 0.25 },
           areaHa: undefined,
           variety,
+          transplantingDate: sowingDate,
         } as any);
       }
 
