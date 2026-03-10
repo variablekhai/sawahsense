@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Wheat, Pencil } from "lucide-react";
+import { Wheat, Pencil, Info } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
@@ -65,6 +65,10 @@ const ALERT_COLORS = {
 const INDEX_LEGENDS = {
   NDVI: {
     label: { ms: "Indeks Kehijauan (NDVI)", en: "Vegetation Index (NDVI)" },
+    description: {
+      ms: "Menunjukkan kepadatan dan tahap kesihatan tanaman. Nilai tinggi bermaksud tanaman rimbun dan subur.",
+      en: "Measures crop density and health. Higher values indicate lush, healthy vegetation.",
+    },
     stops: [
       {
         value: "< 0.2",
@@ -95,6 +99,10 @@ const INDEX_LEGENDS = {
   },
   EVI: {
     label: { ms: "Kehijauan Kanopi (EVI)", en: "Canopy Greenness (EVI)" },
+    description: {
+      ms: "Mengukur kesihatan tanaman dengan lebih tepat di kawasan padi yang sangat lebat dan padat.",
+      en: "Accurately monitors crop health, especially in very dense and thick paddy fields.",
+    },
     stops: [
       {
         value: "< 0.15",
@@ -125,6 +133,10 @@ const INDEX_LEGENDS = {
   },
   LSWI: {
     label: { ms: "Kandungan Air (LSWI)", en: "Water Content (LSWI)" },
+    description: {
+      ms: "Mengukur jumlah cecair dalam daun dan tanah. Penting untuk tahu jika padi sedang kekeringan.",
+      en: "Detects the amount of moisture in leaves and soil. Useful to know if the paddy needs more water.",
+    },
     stops: [
       {
         value: "< 0.1",
@@ -401,6 +413,7 @@ function IndexToggleBar({
   bottomOffset = 52,
 }: IndexToggleBarProps) {
   const [showLegend, setShowLegend] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   const indices = [
     { key: "NDVI" as const, color: "#3fb950" },
@@ -498,16 +511,59 @@ function IndexToggleBar({
               marginBottom: "8px",
             }}
           >
-            <span
-              style={{
-                fontSize: "0.625rem",
-                fontFamily: "IBM Plex Mono, monospace",
-                color: "var(--text-muted)",
-                letterSpacing: "0.08em",
-              }}
-            >
-              {legend.label[lang].toUpperCase()}
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span
+                style={{
+                  fontSize: "0.625rem",
+                  fontFamily: "IBM Plex Mono, monospace",
+                  color: "var(--text-muted)",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {legend.label[lang].toUpperCase()}
+              </span>
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={() => setShowInfo(true)}
+                onMouseLeave={() => setShowInfo(false)}
+              >
+                <Info
+                  size={12}
+                  color="var(--text-muted)"
+                  style={{ cursor: "help" }}
+                />
+                {showInfo && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "100%",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      marginBottom: "8px",
+                      width: "180px",
+                      padding: "8px",
+                      background: "rgba(13, 17, 23, 0.98)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "6px",
+                      color: "var(--text-secondary)",
+                      fontSize: "0.6875rem",
+                      fontFamily: "IBM Plex Sans, sans-serif",
+                      lineHeight: 1.4,
+                      textAlign: "center",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+                      zIndex: 1000,
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {legend.description[lang]}
+                  </div>
+                )}
+              </div>
+            </div>
             <button
               onClick={() => setShowLegend(false)}
               style={{
