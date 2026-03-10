@@ -696,6 +696,8 @@ export default function MapContainer({
       {
         attribution: "Tiles &copy; Esri &mdash; Esri, Maxar, GeoEye",
         maxZoom: 19,
+        keepBuffer: 8,
+        updateWhenZooming: false,
       },
     ).addTo(map);
 
@@ -914,8 +916,9 @@ export default function MapContainer({
   // Expose startDrawing & flyTo imperatively so the sidebar can trigger them
   const flyTo = useCallback((lat: number, lng: number) => {
     if (!mapInstanceRef.current) return;
-    mapInstanceRef.current.setView([lat, lng], 15, {
-      animate: false,
+    mapInstanceRef.current.flyTo([lat, lng], 15, {
+      animate: true,
+      duration: 1.5,
     });
   }, []);
 
@@ -1024,7 +1027,10 @@ export default function MapContainer({
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+      <div
+        ref={mapRef}
+        style={{ width: "100%", height: "100%", background: "#0d1117" }}
+      />
 
       {/* Index Toggle + Legend */}
       <IndexToggleBar
