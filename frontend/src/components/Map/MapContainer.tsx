@@ -539,12 +539,14 @@ function IndexToggleBar({
                   position: "relative",
                   display: "flex",
                   alignItems: "center",
+                  padding: "4px 8px",
+                  marginLeft: "2px",
                 }}
                 onMouseEnter={() => setShowInfo(true)}
                 onMouseLeave={() => setShowInfo(false)}
               >
                 <Info
-                  size={12}
+                  size={14}
                   color="var(--text-muted)"
                   style={{ cursor: "help" }}
                 />
@@ -553,11 +555,10 @@ function IndexToggleBar({
                     style={{
                       position: "absolute",
                       bottom: "100%",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      marginBottom: "8px",
-                      width: "180px",
-                      padding: "8px",
+                      right: "-8px",
+                      marginBottom: "4px",
+                      width: "200px",
+                      padding: "10px",
                       background: "rgba(13, 17, 23, 0.98)",
                       border: "1px solid var(--border)",
                       borderRadius: "6px",
@@ -565,7 +566,7 @@ function IndexToggleBar({
                       fontSize: "0.6875rem",
                       fontFamily: "IBM Plex Sans, sans-serif",
                       lineHeight: 1.4,
-                      textAlign: "center",
+                      textAlign: "right",
                       boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
                       zIndex: 1000,
                       wordBreak: "break-word",
