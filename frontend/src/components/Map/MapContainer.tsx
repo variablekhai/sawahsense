@@ -680,6 +680,8 @@ export default function MapContainer({
       {
         attribution: "Tiles &copy; Esri &mdash; Esri, Maxar, GeoEye",
         maxZoom: 19,
+        keepBuffer: 8,
+        updateWhenZooming: false,
       },
     ).addTo(map);
 
@@ -984,7 +986,10 @@ export default function MapContainer({
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+      <div
+        ref={mapRef}
+        style={{ width: "100%", height: "100%", background: "#0d1117" }}
+      />
 
       {/* Index Toggle + Legend */}
       <IndexToggleBar
