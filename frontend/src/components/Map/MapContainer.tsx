@@ -914,9 +914,8 @@ export default function MapContainer({
   // Expose startDrawing & flyTo imperatively so the sidebar can trigger them
   const flyTo = useCallback((lat: number, lng: number) => {
     if (!mapInstanceRef.current) return;
-    mapInstanceRef.current.flyTo([lat, lng], 15, {
-      animate: true,
-      duration: 1.2,
+    mapInstanceRef.current.setView([lat, lng], 15, {
+      animate: false,
     });
   }, []);
 
