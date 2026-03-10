@@ -142,7 +142,11 @@ export function usePakTani(onAddTask) {
         const type = userMessage.split(":")[1].replace("]", "");
         const imageMsg = {
           role: "user",
-          content: "Sila analisis gambar ini.",
+          content: t(
+            currentLang,
+            "Sila analisis gambar ini.",
+            "Please analyze this image.",
+          ),
           isImage: true,
           imageUrl:
             type === "healthy"
@@ -168,11 +172,17 @@ export function usePakTani(onAddTask) {
 
         let responseText = "";
         if (type === "healthy") {
-          responseText =
-            "Daripada gambar ini, padi nampak sihat dan sekata. Tiada tanda jelas penyakit pada daun. Teruskan penjagaan seperti biasa dan semak semula dalam 3-5 hari.";
+          responseText = t(
+            currentLang,
+            "Daripada gambar ini, padi nampak sihat dan sekata. Tiada tanda jelas penyakit pada daun. Teruskan penjagaan seperti biasa dan semak semula dalam 3-5 hari.",
+            "From this picture, the crop looks healthy and uniform. There are no clear signs of leaf disease. Continue normal care and check back in 3-5 days.",
+          );
         } else {
-          responseText =
-            'Daripada gambar ini, ada tanda penyakit daun yang kuat. Ini mungkin **Hawar Daun Bakteria (BLB)**.\n\nCadangan cepat:\n1. Semak sudut ladang yang paling teruk dulu.\n2. Asingkan aliran air jika boleh.\n3. Rujuk pegawai pertanian berdekatan.\n\nMahu saya buat tugasan "Scouting" untuk anda?';
+          responseText = t(
+            currentLang,
+            'Daripada gambar ini, ada tanda penyakit daun yang kuat. Ini mungkin **Hawar Daun Bakteria (BLB)**.\n\nCadangan cepat:\n1. Semak sudut ladang yang paling teruk dulu.\n2. Asingkan aliran air jika boleh.\n3. Rujuk pegawai pertanian berdekatan.\n\nMahu saya buat tugasan "Scouting" untuk anda?',
+            'From this picture, there are strong signs of leaf disease. This might be **Bacterial Leaf Blight (BLB)**.\n\nQuick recommendations:\n1. Check the worst corners of the field first.\n2. Isolate the water flow if possible.\n3. Consult a nearby agricultural officer.\n\nWould you like me to create a "Scouting" task for you?',
+          );
         }
 
         setMessages([
@@ -213,7 +223,9 @@ export function usePakTani(onAddTask) {
 
         await new Promise((r) => setTimeout(r, 700));
 
-        const { stage: rawStage } = getCurrentStage(field?.transplantingDate || "");
+        const { stage: rawStage } = getCurrentStage(
+          field?.transplantingDate || "",
+        );
         const stageMy = rawStage?.nameMy || "";
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -270,16 +282,17 @@ export function usePakTani(onAddTask) {
 
       // Scripted Q&A for demo fields
       if (field?.id) {
-        const scriptedAnswer = getDemoAnswerForField(field.id, userMessage, currentLang);
+        const scriptedAnswer = getDemoAnswerForField(
+          field.id,
+          userMessage,
+          currentLang,
+        );
         if (scriptedAnswer) {
           const newHistory = [
             ...updatedMessages,
             { role: "user", content: userMessage },
           ];
-          setMessages([
-            ...newHistory,
-            { role: "assistant", content: "..." },
-          ]);
+          setMessages([...newHistory, { role: "assistant", content: "..." }]);
           setLoading(true);
           setError(null);
 
@@ -493,12 +506,11 @@ Mahu saya tambah tugasan "Pemeriksaan Pintu Air" ke senarai tugas anda?`;
             ...updatedMessages,
             {
               role: "assistant",
-              content:
-                t(
-                  currentLang,
-                  "Maaf, saya tidak dapat menjawab sekarang. Cuba lagi sebentar.",
-                  "Sorry, I can’t answer right now. Please try again shortly.",
-                ),
+              content: t(
+                currentLang,
+                "Maaf, saya tidak dapat menjawab sekarang. Cuba lagi sebentar.",
+                "Sorry, I can’t answer right now. Please try again shortly.",
+              ),
             },
           ]);
         }
