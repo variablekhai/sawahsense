@@ -44,12 +44,11 @@ SawahSense addresses this by:
 
 SawahSense was built under the **AI for Food Security** case study track.
 
-| SDG                                               | Goal                                                                                  | How SawahSense contributes                                                                                                                                      |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **SDG 2** — Zero Hunger                           | End hunger, achieve food security, improve nutrition, promote sustainable agriculture | Reduces paddy yield losses through early crop stress detection, directly improving food production for a country that imports ~30% of its rice                  |
-| **SDG 9** — Industry, Innovation & Infrastructure | Build resilient infrastructure, promote inclusive and sustainable industrialisation   | Brings satellite remote sensing — previously accessible only to well-funded agri-corps — to smallholder farmers via a simple mobile-friendly interface          |
-| **SDG 12** — Responsible Consumption & Production | Ensure sustainable consumption and production patterns                                | Enables precision fertiliser and pesticide application; farmers treat only what is needed, when it is needed, reducing chemical overuse                         |
-| **SDG 17** — Partnerships for the Goals           | Strengthen the means of implementation                                                | Built on open-data infrastructure (ESA Sentinel-2, Google Earth Engine) and grounded in knowledge from public Malaysian institutions (DOA, MARDI, IADA, BERNAS) |
+| SDG | How SawahSense contributes |
+|---|---|
+| **SDG 2** — Zero Hunger | Ensures long-term food production and regional food security by detecting crop stress early — reducing yield losses before they become irreversible |
+| **SDG 12** — Responsible Consumption & Production | Reduces unnecessary chemical usage through precision monitoring — farmers apply fertiliser and pesticide only where and when satellite data shows it is needed |
+| **SDG 13** — Climate Action | Helps farmers adapt to climate variability with data-driven insights — stage-aware alerts account for irregular rainfall, drought stress, and shifting growing conditions |
 
 ---
 
