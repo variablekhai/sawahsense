@@ -1,11 +1,10 @@
-<img src="frontend/public/logo.png" alt="SawahSense Logo" width="40" align="left" style="margin-right: 12px;" />
+<p align="center">
+  <img src="frontend/public/sawahsense-wordmark-dark.png" alt="SawahSense — Rice Field Monitoring From Space" width="480" />
+</p>
 
-# SawahSense — Rice Field Monitoring From Space
-
-> **Pemantauan Sawah Dari Angkasa**  
 > AI-powered satellite monitoring for Malaysian paddy farmers — detecting crop stress before it becomes crop loss.
 
-SawahSense is a full-stack precision agriculture platform that uses Sentinel-2 satellite imagery to monitor paddy fields in real time. It tracks three spectral indices (NDVI, EVI, LSWI) to detect irrigation failure, disease outbreaks, and nutrient deficiency weeks before they become visible to the human eye — then communicates actionable advice directly to farmers via an AI agronomist and WhatsApp.
+SawahSense is a precision agriculture platform that uses Sentinel-2 satellite imagery to monitor paddy fields in real time. It tracks three spectral indices (NDVI, EVI, LSWI) to detect irrigation failure, disease outbreaks, and nutrient deficiency weeks before they become visible to the human eye — then communicates actionable advice directly to farmers via an AI agronomist and WhatsApp.
 
 ---
 
@@ -45,24 +44,24 @@ SawahSense addresses this by:
 
 SawahSense was built under the **AI for Food Security** case study track.
 
-| SDG | Goal | How SawahSense contributes |
-|---|---|---|
-| **SDG 2** — Zero Hunger | End hunger, achieve food security, improve nutrition, promote sustainable agriculture | Reduces paddy yield losses through early crop stress detection, directly improving food production for a country that imports ~30% of its rice |
-| **SDG 9** — Industry, Innovation & Infrastructure | Build resilient infrastructure, promote inclusive and sustainable industrialisation | Brings satellite remote sensing — previously accessible only to well-funded agri-corps — to smallholder farmers via a simple mobile-friendly interface |
-| **SDG 12** — Responsible Consumption & Production | Ensure sustainable consumption and production patterns | Enables precision fertiliser and pesticide application; farmers treat only what is needed, when it is needed, reducing chemical overuse |
-| **SDG 17** — Partnerships for the Goals | Strengthen the means of implementation | Built on open-data infrastructure (ESA Sentinel-2, Google Earth Engine) and grounded in knowledge from public Malaysian institutions (DOA, MARDI, IADA, BERNAS) |
+| SDG                                               | Goal                                                                                  | How SawahSense contributes                                                                                                                                      |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **SDG 2** — Zero Hunger                           | End hunger, achieve food security, improve nutrition, promote sustainable agriculture | Reduces paddy yield losses through early crop stress detection, directly improving food production for a country that imports ~30% of its rice                  |
+| **SDG 9** — Industry, Innovation & Infrastructure | Build resilient infrastructure, promote inclusive and sustainable industrialisation   | Brings satellite remote sensing — previously accessible only to well-funded agri-corps — to smallholder farmers via a simple mobile-friendly interface          |
+| **SDG 12** — Responsible Consumption & Production | Ensure sustainable consumption and production patterns                                | Enables precision fertiliser and pesticide application; farmers treat only what is needed, when it is needed, reducing chemical overuse                         |
+| **SDG 17** — Partnerships for the Goals           | Strengthen the means of implementation                                                | Built on open-data infrastructure (ESA Sentinel-2, Google Earth Engine) and grounded in knowledge from public Malaysian institutions (DOA, MARDI, IADA, BERNAS) |
 
 ---
 
 ## Target Users
 
-| User | Role | How they use SawahSense |
-|---|---|---|
-| **Paddy farmers** | Primary beneficiary | Receive WhatsApp alerts and Pak Tani advice in Bahasa Malaysia; draw their own fields with no technical knowledge required |
-| **Extension officers** (Jabatan Pertanian / IADA) | Field agronomists | Monitor multiple farms from a single dashboard; dispatch scouting tasks to farmers in one tap |
-| **Agricultural cooperatives & FELDA blocks** | Group farm managers | Oversee a portfolio of fields; identify which plots need urgent intervention across a season |
-| **Researchers & policymakers** | Data consumers | Access time-series satellite data and alert histories to understand regional crop health trends |
-| **AgriTech platforms** | Integration partners | Embed the backend API (GEE indices, Pak Tani) into existing farmer-facing apps |
+| User                                              | Role                 | How they use SawahSense                                                                                                    |
+| ------------------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Paddy farmers**                                 | Primary beneficiary  | Receive WhatsApp alerts and Pak Tani advice in Bahasa Malaysia; draw their own fields with no technical knowledge required |
+| **Extension officers** (Jabatan Pertanian / IADA) | Field agronomists    | Monitor multiple farms from a single dashboard; dispatch scouting tasks to farmers in one tap                              |
+| **Agricultural cooperatives & FELDA blocks**      | Group farm managers  | Oversee a portfolio of fields; identify which plots need urgent intervention across a season                               |
+| **Researchers & policymakers**                    | Data consumers       | Access time-series satellite data and alert histories to understand regional crop health trends                            |
+| **AgriTech platforms**                            | Integration partners | Embed the backend API (GEE indices, Pak Tani) into existing farmer-facing apps                                             |
 
 ---
 
