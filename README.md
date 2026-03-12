@@ -1,3 +1,5 @@
+<img src="frontend/public/logo.png" alt="SawahSense Logo" width="40" align="left" style="margin-right: 12px;" />
+
 # SawahSense — Rice Field Monitoring From Space
 
 > **Pemantauan Sawah Dari Angkasa**  
