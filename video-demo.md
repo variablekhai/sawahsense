@@ -7,7 +7,7 @@
 
 ---
 
-## 🎬 Opening Hook (0:00 – 0:30)
+## 🎬 Opening Hook
 
 **[Narration — spoken over aerial/drone footage of paddy fields]**
 
@@ -28,14 +28,14 @@
 
 ## 01 - Onboarding (Scene 1 - 3)
 
-### 🌍 Scene 1 — Onboarding: Choose Your Location (0:30 – 1:15)
+### 🌍 Scene 1 — Onboarding: Choose Your Location
 
 > **[On screen: Onboarding sidebar slides in from the left. Step 1 of 3 is shown.]**
 
 **[Narration:]**
 
 > "When a new user opens SawahSense for the first time, we don't throw them into empty data.
-> We walk them through three simple steps — in Bahasa Malaysia or English, their choice."
+> We walk them through three simple steps — in Bahasa Melayu or English, their choice."
 
 **[Action: Type "Sekinchan" or "Tanjung Karang" in the location search bar of the onboarding sidebar.]**
 
@@ -49,7 +49,7 @@
 
 ---
 
-### 🖊️ Scene 2 — Drawing the First Field (1:15 – 2:00)
+### 🖊️ Scene 2 — Drawing the First Field
 
 > **[On screen: Onboarding Step 2. Instruction: "Lukis kawasan ladang anda" / "Draw your field boundary"]**
 
@@ -69,7 +69,7 @@
 
 ---
 
-### 📝 Scene 3 — Enter Field Details (2:00 – 2:45)
+### 📝 Scene 3 — Enter Field Details
 
 > **[On screen: Onboarding Step 3. A small form slides in. Three fields:]**
 >
@@ -95,7 +95,7 @@
 
 ## 02 - Dashboard (Scene 4)
 
-### 🗺️ Scene 4 — The Dashboard: Your Farm From Space (2:45 – 3:30)
+### 🗺️ Scene 4 — The Dashboard: Your Farm From Space
 
 > **[On screen: The main map view. Several field polygons visible — Petak A through F. Each one colour-coded by health status. Healthy fields are green; warning fields are amber; critical fields are red.]**
 
@@ -117,7 +117,7 @@
 
 ## 03 - Reading Data (Scene 5)
 
-### 📊 Scene 5 — Reading the Data: Three Indices, One Story (3:30 – 4:15)
+### 📊 Scene 5 — Reading the Data: Three Indices, One Story
 
 > **[On screen: The bottom panel shows a time-series chart for Petak C. Three lines: NDVI (green), EVI (blue), LSWI (teal). Date carousel at the top. Heatmap selector chips.]**
 
@@ -147,7 +147,7 @@
 > "Now switch to LSWI — same date, same field.
 > Still normal. Good soil moisture.
 >
-> But watch what happens when we switch back to EVI and look closely at the southeast corner."
+> But watch what happens when we switch to EVI and look closely at the southeast corner."
 
 **[Zoom into the SE corner of Petak C heatmap. A yellow-orange wedge is visible.]**
 
@@ -159,7 +159,7 @@
 
 ## 04 - Alerts (Scene 6)
 
-### 🔔 Scene 6 — Alerts: The Early Warning System (4:15 – 4:45)
+### 🔔 Scene 6 — Alerts: The Early Warning System
 
 > **[On screen: Click the Alerts tab. A red badge on the bell icon. Inside: two active alerts — one for Petak C (BLB), one for Petak D (LSWI drop).]**
 
@@ -182,34 +182,28 @@
 
 ## 05 - Pak Tani (Scene 7, Image Diagnostics, Scene 8)
 
-### 🤖 Scene 7 — Pak Tani: Your AI Agronomist (4:45 – 6:00)
+### 🤖 Scene 7 — Pak Tani: Your AI Agronomist
 
 > **[Action: Click the Pak Tani tab (robot icon 🤖 at the bottom of the tab list). The Pak Tani chat interface opens.]**
 
 **[Narration:]**
 
 > "This is Pak Tani — our RAG-powered AI agronomist, built on Malaysian agricultural knowledge:
-> Jabatan Pertanian, MARDI, IADA, and decades of paddy research.
->
-> He doesn't give generic farming advice.
-> He reads your field data, knows the growth stage, and gives you specific, actionable guidance."
+> Jabatan Pertanian, MARDI, IADA, and decades of paddy research."
 
-**[Action: Petak C should be selected. Type or click a suggested question:]**
+**[Action: Petak C should be selected. Show the user selecting one of the suggested questions or typing a new one.]**
 
 > **"Apa nasihat untuk Petak C?"** / **"What is the advice for Petak C?"**
+
+**[Narration:]**
+
+> "Farmers can select from pre-assigned common questions based on their field's current status, or write their own specific questions."
 
 **[Pak Tani responds: Step-by-step mitigation for BLB — drain the field, apply copper hydroxide bactericide, isolate from shared irrigation, notify IADA BLS. Response cites sources like "Manual Penanaman Padi, DOA Malaysia".]**
 
 **[Narration:]**
 
-> "Step by step. With citations. In Bahasa Malaysia.
-> Not a chatbot giving generic answers — an agronomist who has read your data before you even asked."
-
-**[Pak Tani ends with: "Adakah anda mahu saya cipta tugas scouting untuk Petak C?" / "Would you like me to create a scouting task for Petak C?"]**
-
-**[Action: Type "ya" / "yes" / "boleh" in the chat.]**
-
----
+> "He doesn't give generic farming advice. He gives step-by-step guidance based on what your field data actually says, completely backed by official citations."
 
 #### 📷 Image Diagnostics (within Pak Tani)
 
@@ -219,31 +213,39 @@
 
 > "Farmers can also send Pak Tani a photo.
 > A close-up of an affected leaf — taken with any phone.
-> Pak Tani analyses the image and gives a diagnosis."
+> Pak Tani analyses the image and gives a diagnosis right in the chat."
 
-**[Pak Tani response: Detects lesion patterns consistent with Bacterial Leaf Blight. Suggests scouting task. Offers to log it.]**
+**[Pak Tani response: Detects lesion patterns consistent with Bacterial Leaf Blight. Suggests a scouting task and offers to log it.]**
 
-> "Field intelligence and visual diagnostics — in one conversation."
-
----
-
-### ✅ Scene 8 — Tasks: From Alert to Action (6:00 – 6:45)
-
-> **[On screen: Click the Tasks / Tugas tab. A new task has been added: "Scouting & Semburan BLB — Petak C". Due tomorrow. Tagged with field name, alert context, current NDVI/EVI values.]**
+**[Action: Type "ya" / "yes" / "boleh" in the chat.]**
 
 **[Narration:]**
 
-> "Pak Tani's recommendation didn't stay in a chat.
-> It became a task — with a deadline, field context, and satellite readings attached."
+> "Pak Tani even proactively schedules exactly what needs to be done next."
+
+---
+
+### ✅ Scene 8 — Tasks: From Alert to Action
+
+> **[On screen: Click the Tasks / Tugas tab. A new task has been auto-created: "Scouting & Semburan BLB — Petak C". Due tomorrow. Tagged with field name, alert context, and current index values.]**
+
+**[Narration:]**
+
+> "The recommendation didn't just stay in a chat.
+> It became an actionable task — with a deadline, field context, and satellite readings attached."
 
 **[Action: Click on the task card. Tap the WhatsApp button.]**
 
-> "From here, the task can be sent directly to the farmer — via WhatsApp — in one tap.
+**[Narration:]**
+
+> "From here, the task can be sent directly to the farmer via WhatsApp in one tap.
 > The farmer receives the location, the problem, and exactly what to do."
 
 **[Action: Select "Abu (Petak C)" from the farmer dropdown. Click "Hantar WhatsApp".]**
 
 **[A toast/confirmation appears: "Tugas Dihantar!" / "Tasks Sent!"]**
+
+**[Narration:]**
 
 > "No email chains. No phone tag. No lost notes.
 > One tap from the agronomist's desk to the farmer's pocket."
@@ -252,23 +254,28 @@
 
 ## 06 - Bonus (Multilingual & Mobile Accessibility)
 
-> **[We can add the content here later showing language switching and mobile view scaling for ASEAN countries]**
+> **[On screen: Click the Language toggle ("EN" / "BM") in the top navigation bar. Switch it to Bahasa Melayu. The interface, including the map sidebar, Pak Tani tab, and alerts immediately translate to Bahasa.]**
+
+**[Narration:]**
+
+> "But this isn't just a tool for Malaysia. ASEAN feeds half the world's population, and every country has its own local wisdom and language.
+> With a single click, SawahSense transitions its entire UI and AI intelligence to Bahasa Melayu. It's built on an architecture that can instantly scale translation to Thai, Vietnamese, or Tagalog across borders."
+
+> **[On screen: Resize the browser window's width down to simulate a mobile phone screen. Show how the sidebar collapses seamlessly into a hamburger menu while the map auto-focuses beautifully in the much smaller viewport.]**
+
+**[Narration:]**
+
+> "And because field workers don't carry laptops out to the fields, the entire platform is mobile-native responsive.
+> Farmers can open SawahSense on the go, check real-time alerts, snap photos for diagnostics, and interact with Pak Tani directly from their smartphones, standing out in the hot sun."
 
 ---
 
-## 🏁 Closing: The Numbers That Matter (6:45 – 7:30)
+## 🏁 Closing: The Numbers That Matter
 
 > **[Montage of all six field heatmaps. Chart lines. Alert cards. Pak Tani chat. Task list.]**
 
 **[Narration:]**
 
-> "This season in Sekinchan.
-> Six fields. Three problems.
->
-> Petak F — nitrogen deficiency. Caught at Day 30. Corrected. Yield preserved.
-> Petak C — Bacterial Leaf Blight. Caught at Day 47. Partially contained. Loss reduced from 60% to 35%.
-> Petak D — irrigation blockage. Caught on November 4 by LSWI alone. Gate cleared in 48 hours. Loss cut by half.
->
 > SawahSense is not perfect. Agriculture never is.
 > But better information, at the right time, is the difference between a difficult season and a lost one.
 >
@@ -282,27 +289,6 @@
 
 > **"SawahSense — Pemantauan Sawah Dari Angkasa."**
 > _"Rice Field Monitoring From Space."_
-
----
-
-## 🧭 Demo Flow Summary (Quick Reference for Presenter)
-
-| Step | What to Show                                   | Feature Covered                 |
-| ---- | ---------------------------------------------- | ------------------------------- |
-| 1    | Type location in onboarding sidebar            | Location onboarding             |
-| 2    | Draw a field polygon on the map                | Field drawing tool              |
-| 3    | Fill in name, variety, sowing date             | Field metadata input            |
-| 4    | Overview of coloured field cards in sidebar    | Fields tab, health badges       |
-| 5    | Click Petak C → bottom panel chart             | Index time-series chart         |
-| 6    | Switch NDVI heatmap → LSWI heatmap, October 20 | Heatmap views, multi-index      |
-| 7    | Show Alerts tab → Petak D LSWI alert           | Alerts tab, LSWI advantage      |
-| 8    | Open Pak Tani, ask question about Petak C      | Pak Tani RAG chatbot            |
-| 9    | Upload "BLB sample" via camera icon            | Image diagnostics               |
-| 10   | Reply "ya" → task is auto-created              | Task auto-creation              |
-| 11   | Open Tasks tab → WhatsApp a farmer             | Tasks tab, WhatsApp integration |
-| 12   | Closing narration + numbers                    | Overall impact summary          |
-
----
 
 ## 🗣️ Talking Points for Q&A
 
