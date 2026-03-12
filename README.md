@@ -10,6 +10,7 @@ SawahSense is a full-stack precision agriculture platform that uses Sentinel-2 s
 ## Table of Contents
 
 - [Project Overview](#project-overview)
+- [The Three Indices — What the Satellite Sees](#the-three-indices--what-the-satellite-sees)
 - [Architecture](#architecture)
 - [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
@@ -55,6 +56,24 @@ sawahsense/                  ← pnpm monorepo root
 └── backend/                 ← FastAPI Python app (port 8000)
     └── main.py              ← GEE indices, Pak Tani AI, WhatsApp API
 ```
+
+---
+
+## The Three Indices — What the Satellite Sees
+
+Most satellite agriculture tools only show NDVI. SawahSense tracks three, because each one catches a different category of problem.
+
+| Index    | Full Name                              | What it measures                  | Plain language                                               |
+| -------- | -------------------------------------- | --------------------------------- | ------------------------------------------------------------ |
+| **NDVI** | Normalised Difference Vegetation Index | Chlorophyll / greenness of leaves | _"Is the plant green and photosynthesising?"_                |
+| **EVI**  | Enhanced Vegetation Index              | Canopy density and structure      | _"How thick and healthy is the crop canopy?"_                |
+| **LSWI** | Land Surface Water Index               | Water content in leaves and soil  | _"Is there enough water in the field and inside the plant?"_ |
+
+**Why three?** Because the three indices fail in different situations — and that's exactly the point:
+
+- A plant suffering from **irrigation failure** can look perfectly green (NDVI normal, EVI normal) while its internal water is critically low (LSWI drops). By the time the leaves visibly wilt, the grain damage is already done.
+- A field with **nutrient deficiency** shows a subtle, uniform drop in EVI (canopy is thinner) before NDVI picks it up — catching it 2–3 weeks earlier.
+- A **bacterial disease** like BLB attacks leaf tissue but not the water system — so NDVI and EVI fall in the affected patch while LSWI stays normal. That specific combination is a disease fingerprint.
 
 ---
 
@@ -359,19 +378,16 @@ Cloudy acquisition passes (e.g. Sep 15 at 72% cloud) are greyed out in the date 
 
 ## Frequently Asked Questions
 
-**"How is this different from existing apps like Proladang?"**  
-Proladang and similar tools use NDVI only. SawahSense uses three indices. The Petak D scenario — NDVI 0.76 while LSWI is critically low — shows exactly where single-index tools fail silently. A farmer using an NDVI-only tool would have walked past a dying crop.
-
-**"Does it work for small farmers?"**  
-Yes. The field polygon drawing interface requires no GPS devices — just draw on the map. Pak Tani responds in Bahasa Malaysia. WhatsApp delivery means the farmer receives instructions without ever opening the app.
-
-**"What satellite does it use?"**  
-Sentinel-2, operated by the European Space Agency (ESA). Free, publicly available, 10-metre resolution, 5-day revisit cycle.
+**"Is there a similar app for this?"**  
+Yes — two exist, and SawahSense sits between them. **EOS Crop Monitoring** (European) offers satellite indices but is expensive and built for agronomists with deep technical training, not field farmers. **Rakan Tani AI** (Malaysian government) provides AI advice via WhatsApp but has no satellite monitoring at all. SawahSense bridges both: satellite intelligence delivered through a simple interface and WhatsApp, built for Malaysian farmers.
 
 **"Is Pak Tani a generic chatbot?"**  
-No. Every Pak Tani response is injected with the selected field's live context (variety, growth stage, current indices, active alert type) before being sent to Claude. Responses are grounded in official Malaysian agriculture publications from DOA, MARDI, and IADA.
+No. Pak Tani is agentic — it monitors your fields via satellite, fires alerts when indices fall below stage-calibrated thresholds, and then explains exactly what is wrong and what to do. Every response is grounded in a knowledge base (RAG) built from official Malaysian agriculture agencies including BERNAS, DOA, MARDI, and IADA. No hallucinations.
 
-**"What does Malaysia's food security look like?"**  
-Malaysia imports approximately 30% of its rice. Every percentage point improvement in average paddy yield reduces that import dependency. The gap between Sekinchan's best-in-class 10 t/ha and the national average of 4 t/ha is not a genetic or soil problem — it is an information problem. SawahSense targets that gap.
+**"What satellite does it use?"**  
+Sentinel-2, operated by the European Space Agency (ESA) and accessed via Google Earth Engine API. Free, publicly available, 10-metre resolution, 5-day revisit cycle.
+
+**"Does it work for small farmers?"**  
+Yes. The field drawing interface requires no GPS devices — just draw on the map. Pak Tani responds in Bahasa Malaysia. WhatsApp delivery means the farmer receives instructions without ever opening the app.
 
 ---
