@@ -11,7 +11,7 @@ SawahSense is a precision agriculture platform that uses Sentinel-2 satellite im
 ### 🏆 Quick Links for Judges
 
 - 🎥 **[Pitching & Demo Video](https://www.youtube.com/watch?v=xIClhUIvep0)**
-- 📄 **[Project Report](https://drive.google.com/file/d/1Nlz0xro975QSDNAWyEf3eit_ep83R-LH/view?usp=sharing)**
+- 📄 **[Project Report](https://drive.google.com/file/d/15e4vWQe6PG0cFnfjo7eRNtLRIRVMmuVc/view?usp=sharing)**
 - 🚀 **[Deployed SawahSense (demo data)](https://sawahsense.vercel.app)**
 
 ---
