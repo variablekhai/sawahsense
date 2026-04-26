@@ -167,46 +167,38 @@ export function Navbar({
           title={t("nav.viewAlerts")}
           style={{
             position: "relative",
-            width: 32,
-            height: 32,
+            width: 24,
+            height: 24,
             borderRadius: "6px",
-            border: "1px solid var(--border)",
-            background:
-              alertCount > 0 ? "var(--accent-red-dim)" : "var(--bg-surface)",
+            border: "none",
+            background: "transparent",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
             transition: "all 0.15s ease",
+            padding: 0,
           }}
         >
           <Bell
             size={14}
             color={
-              alertCount > 0 ? "var(--accent-red)" : "var(--text-secondary)"
+              alertCount > 0 ? "var(--accent-green)" : "var(--text-secondary)"
             }
           />
           {alertCount > 0 && (
             <span
               style={{
                 position: "absolute",
-                top: -4,
-                right: -4,
-                width: 16,
-                height: 16,
+                top: 1,
+                right: 1,
+                width: 7,
+                height: 7,
                 borderRadius: "50%",
                 background: "var(--accent-red)",
-                color: "#fff",
-                fontSize: "0.625rem",
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "IBM Plex Mono, monospace",
+                border: "1px solid var(--bg-base)",
               }}
-            >
-              {alertCount > 9 ? "9+" : alertCount}
-            </span>
+            />
           )}
         </button>
       </div>
