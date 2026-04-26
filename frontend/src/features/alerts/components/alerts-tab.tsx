@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { MapPin, Plus, Circle, Wheat } from "lucide-react";
-import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
+import { useTranslation } from "react-i18next";
+
+import {
+  getCurrentStage,
+  getStageTranslationKey,
+} from "@/features/fields/lib/stage-definitions";
 
 interface Field {
   id: string;
@@ -32,19 +37,16 @@ const LEVEL_CONFIG = {
     color: "var(--accent-red)",
     bg: "var(--accent-red-dim)",
     icon: Circle,
-    label: { ms: "Kritikal", en: "Critical" },
   },
   warning: {
     color: "var(--accent-yellow)",
     bg: "var(--accent-yellow-dim)",
     icon: Circle,
-    label: { ms: "Amaran", en: "Warning" },
   },
   healthy: {
     color: "var(--accent-green)",
     bg: "var(--accent-green-dim)",
     icon: Circle,
-    label: { ms: "Sihat", en: "Healthy" },
   },
 };
 
@@ -54,6 +56,7 @@ export function AlertsTab({
   onCreateTask,
   lang,
 }: AlertsTabProps) {
+  const { t } = useTranslation();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
   const alertFields = fields.filter(
@@ -67,7 +70,7 @@ export function AlertsTab({
       f3: lang === "ms" ? "Semalam · 06:14 pagi" : "Yesterday · 6:14 AM",
       f4: lang === "ms" ? "2 hari lepas · 09:30 pagi" : "2 days ago · 9:30 AM",
     };
-    return offsets[fieldId] || (lang === "ms" ? "Semalam" : "Yesterday");
+    return offsets[fieldId] || t("alerts.yesterday");
   };
 
   return (
@@ -96,10 +99,8 @@ export function AlertsTab({
           }}
         >
           {activeAlerts.length > 0
-            ? `${activeAlerts.length} ${lang === "ms" ? "AMARAN AKTIF" : "ACTIVE ALERTS"}`
-            : lang === "ms"
-              ? "TIADA AMARAN"
-              : "NO ALERTS"}
+            ? t("alerts.activeAlertsCount", { count: activeAlerts.length }).toUpperCase()
+            : t("sidebar.noAlerts").toUpperCase()}
         </span>
       </div>
 
@@ -124,9 +125,7 @@ export function AlertsTab({
                 margin: 0,
               }}
             >
-              {lang === "ms"
-                ? "Semua ladang dalam keadaan baik!"
-                : "All fields are healthy!"}
+              {t("sidebar.noAlerts")}
             </p>
           </div>
         )}
@@ -136,8 +135,8 @@ export function AlertsTab({
           const { stage: stageRaw, daysSince } = getCurrentStage(
             field.transplantingDate,
           );
-          const stage = stageRaw as { nameMy: string; nameEn: string };
-          const stageName = lang === "ms" ? stage.nameMy : stage.nameEn;
+          const stage = stageRaw as { key: string };
+          const stageName = t(getStageTranslationKey(stage));
 
           return (
             <div
@@ -185,7 +184,7 @@ export function AlertsTab({
                     opacity: 0.7,
                   }}
                 >
-                  {config.label[lang]}
+                  {t(`common.${field.alertLevel}`)}
                 </span>
               </div>
 
@@ -221,7 +220,7 @@ export function AlertsTab({
                         color: "var(--text-muted)",
                       }}
                     >
-                      {stageName} · {lang === "ms" ? "Hari" : "Day"} {daysSince}
+                      {stageName} · {t("stages.day")} {daysSince}
                     </span>
                   </div>
                   <span
@@ -275,7 +274,7 @@ export function AlertsTab({
                     }}
                   >
                     <MapPin size={10} />
-                    {lang === "ms" ? "Lihat di Peta" : "View on Map"}
+                    {t("fields.viewOnMap")}
                   </button>
                   <button
                     onClick={onCreateTask}
@@ -294,7 +293,7 @@ export function AlertsTab({
                     }}
                   >
                     <Plus size={10} />
-                    {lang === "ms" ? "Buat Tugas" : "Create Task"}
+                    {t("alerts.createTask")}
                   </button>
                 </div>
               </div>

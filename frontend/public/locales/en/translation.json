@@ -24,7 +24,8 @@
     "allFields": "All Fields",
     "notifications": "Notifications",
     "account": "Account",
-    "langToggle": "EN | BM"
+    "langToggle": "EN | BM",
+    "viewAlerts": "View alerts"
   },
   "stages": {
     "establishment": "Establishment",
@@ -50,6 +51,8 @@
     "tasks": "My Tasks",
     "alerts": "Alerts",
     "pakTani": "Pak Tani",
+    "open": "Open sidebar",
+    "close": "Close sidebar",
     "addField": "Add New Field",
     "addTask": "Create Task",
     "noFields": "No fields. Add a new field on the map.",
@@ -57,6 +60,9 @@
     "noAlerts": "All fields are healthy!"
   },
   "fields": {
+    "myFieldsCount": "{{count}} My Fields",
+    "addingFieldHint": "Adding field: draw a boundary on the map or cancel.",
+    "cancelAddingField": "Cancel Adding Field",
     "location": "Location",
     "area": "Area",
     "variety": "Variety",
@@ -67,6 +73,7 @@
     "viewOnMap": "View on Map"
   },
   "alerts": {
+    "activeAlertsCount": "{{count}} Active Alerts",
     "eviDrop": "EVI dropped {{percent}}% in {{days}} days",
     "lswiLow": "Field water level dropping — check irrigation channel",
     "ndviLow": "NDVI too low during {{stage}}",

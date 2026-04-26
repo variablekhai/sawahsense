@@ -2,6 +2,7 @@
 
 import { FieldCard } from "@/features/fields/components/field-card";
 import type { Field, Lang } from "@/types";
+import { useTranslation } from "react-i18next";
 
 interface FieldsTabProps {
   fields: Field[];
@@ -22,6 +23,7 @@ export function FieldsTab({
   isAddingField = false,
   onCancelAddField,
 }: FieldsTabProps) {
+  const { t } = useTranslation();
   // Sort: Critical → Warning → Healthy
   const sorted = [...fields].sort((a, b) => {
     const order = { critical: 0, warning: 1, healthy: 2 };
@@ -53,9 +55,7 @@ export function FieldsTab({
             letterSpacing: "0.08em",
           }}
         >
-          {lang === "ms"
-            ? `${fields.length} LADANG SAYA`
-            : `${fields.length} MY FIELDS`}
+          {t("fields.myFieldsCount", { count: fields.length }).toUpperCase()}
         </span>
       </div>
 
@@ -94,9 +94,7 @@ export function FieldsTab({
               fontFamily: "IBM Plex Sans, sans-serif",
             }}
           >
-            {lang === "ms"
-              ? "Sedang tambah ladang: lukis sempadan di peta atau batal."
-              : "Adding field: draw a boundary on the map or cancel."}
+            {t("fields.addingFieldHint")}
           </div>
         )}
         <button
@@ -137,12 +135,8 @@ export function FieldsTab({
           <span>{isAddingField ? "×" : "+"}</span>
           <span>
             {isAddingField
-              ? lang === "ms"
-                ? "Batal Tambah Ladang"
-                : "Cancel Adding Field"
-              : lang === "ms"
-                ? "Tambah Ladang Baru"
-                : "Add New Field"}
+              ? t("fields.cancelAddingField")
+              : t("sidebar.addField")}
           </span>
         </button>
       </div>

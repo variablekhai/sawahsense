@@ -15,6 +15,7 @@ import { PakTaniTab } from "@/features/pak-tani/components/pak-tani-tab";
 import { TasksTab } from "@/features/tasks/components/tasks-tab";
 import type { Task } from "@/features/tasks/types/task";
 import type { Field, Lang, Message, TabId } from "@/types";
+import { useTranslation } from "react-i18next";
 
 interface SidebarProps {
   fields: Field[];
@@ -73,6 +74,7 @@ export function Sidebar({
   collapsed = false,
   onToggleCollapse,
 }: SidebarProps) {
+  const { t } = useTranslation();
   const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
   const alertCount = fields.filter((f) => f.alertLevel !== "healthy").length;
 
@@ -109,7 +111,7 @@ export function Sidebar({
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
-            const label = lang === "ms" ? tab.labelMs : tab.labelEn;
+            const label = t(`sidebar.${tab.id}`);
             const hasAlert = tab.id === "alerts" && alertCount > 0;
 
             return (
@@ -234,11 +236,11 @@ export function Sidebar({
           title={
             collapsed
               ? lang === "ms"
-                ? "Buka sidebar"
-                : "Open sidebar"
+                ? t("sidebar.open")
+                : t("sidebar.open")
               : lang === "ms"
-                ? "Tutup sidebar"
-                : "Close sidebar"
+                ? t("sidebar.close")
+                : t("sidebar.close")
           }
           style={{
             position: "fixed",

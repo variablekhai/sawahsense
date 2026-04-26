@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "react-i18next";
+
 interface GDDData {
   accumulated: number;
   target: number;
@@ -17,6 +19,7 @@ interface GDDStripProps {
 }
 
 export function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <div
@@ -46,7 +49,7 @@ export function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
             textAlign: "center",
           }}
         >
-          {lang === "ms" ? "Mengira GDD..." : "Calculating GDD..."}
+          {t("gdd.loading")}
         </span>
       </div>
     );
@@ -62,7 +65,7 @@ export function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
             color: "var(--text-muted)",
           }}
         >
-          {lang === "ms" ? "GDD N/A" : "GDD N/A"}
+          GDD N/A
         </span>
       </div>
     );
@@ -93,7 +96,7 @@ export function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
           textTransform: "uppercase",
         }}
       >
-        {lang === "ms" ? "Menuai" : "Harvest"}
+        {t("gdd.harvest")}
       </span>
 
       {/* Circular progress */}
@@ -191,7 +194,7 @@ export function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
             fontWeight: 600,
           }}
         >
-          ~{gdd.daysRemaining} {lang === "ms" ? "hari" : "days"}
+          {t("gdd.daysRemaining", { days: gdd.daysRemaining })}
         </p>
         <p
           style={{

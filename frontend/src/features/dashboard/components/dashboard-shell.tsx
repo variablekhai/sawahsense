@@ -10,8 +10,11 @@ import { Sidebar } from "@/features/dashboard/components/sidebar";
 import { PakTaniAmbientCard } from "@/features/map/components/pak-tani-ambient-card";
 import { usePakTani } from "@/features/pak-tani/hooks/use-pak-tani";
 import type { Task } from "@/features/tasks/types/task";
+import { useAppLanguage } from "@/hooks/use-app-language";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { i18n } from "@/lib/i18n";
 import type { Field, TabId } from "@/types";
+import { useTranslation } from "react-i18next";
 
 const MapContainer = dynamic(
   () =>
@@ -51,7 +54,7 @@ const MapContainer = dynamic(
               letterSpacing: "0.08em",
             }}
           >
-            MEMUATKAN PETA...
+            {i18n.t("common.loading").toUpperCase()}
           </p>
         </div>
       </div>
@@ -60,7 +63,6 @@ const MapContainer = dynamic(
 );
 
 export function DashboardShell() {
-  const [lang, setLang] = useState<"ms" | "en">("en");
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("fields");
   const [activeIndex, setActiveIndex] = useState<"NDVI" | "EVI" | "LSWI">(
@@ -76,6 +78,8 @@ export function DashboardShell() {
   const [userFields, setUserFields] = useState<Field[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const isMobile = useIsMobile();
+  const { language: lang, toggleLanguage } = useAppLanguage();
+  const { t } = useTranslation();
 
   const panelHeight = bottomPanelExpanded
     ? isMobile
@@ -200,7 +204,7 @@ export function DashboardShell() {
         selectedFieldName={selectedField?.name || null}
         alertCount={alertCount}
         lang={lang}
-        onLangToggle={() => setLang((currentLang) => (currentLang === "ms" ? "en" : "ms"))}
+        onLangToggle={toggleLanguage}
         onAlertClick={() => handleTabChange("alerts")}
         onMenuClick={
           isMobile ? () => setMobileSidebarOpen((open) => !open) : undefined

@@ -106,3 +106,5 @@ export const getStageLabel = (transplantingDateISO, lang = "ms") => {
   const name = lang === "ms" ? stage.nameMy : stage.nameEn;
   return `${name} · Hari ${daysSince}`;
 };
+
+export const getStageTranslationKey = (stage) => `stages.${stage.key}`;

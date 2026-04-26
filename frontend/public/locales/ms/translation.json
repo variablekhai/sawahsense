@@ -24,7 +24,8 @@
     "allFields": "Semua Ladang",
     "notifications": "Pemberitahuan",
     "account": "Akaun",
-    "langToggle": "BM | EN"
+    "langToggle": "BM | EN",
+    "viewAlerts": "Lihat amaran"
   },
   "stages": {
     "establishment": "Penanaman",
@@ -50,6 +51,8 @@
     "tasks": "Tugas Saya",
     "alerts": "Amaran",
     "pakTani": "Pak Tani",
+    "open": "Buka sidebar",
+    "close": "Tutup sidebar",
     "addField": "Tambah Ladang Baru",
     "addTask": "Buat Tugas",
     "noFields": "Tiada ladang. Tambah ladang baharu di peta.",
@@ -57,6 +60,9 @@
     "noAlerts": "Semua ladang dalam keadaan baik!"
   },
   "fields": {
+    "myFieldsCount": "{{count}} Ladang Saya",
+    "addingFieldHint": "Sedang tambah ladang: lukis sempadan di peta atau batal.",
+    "cancelAddingField": "Batal Tambah Ladang",
     "location": "Lokasi",
     "area": "Keluasan",
     "variety": "Varieti",
@@ -67,6 +73,7 @@
     "viewOnMap": "Lihat di Peta"
   },
   "alerts": {
+    "activeAlertsCount": "{{count}} Amaran Aktif",
     "eviDrop": "EVI menurun {{percent}}% dalam {{days}} hari",
     "lswiLow": "Paras air ladang menurun — semak saluran irigasi",
     "ndviLow": "NDVI terlalu rendah semasa {{stage}}",

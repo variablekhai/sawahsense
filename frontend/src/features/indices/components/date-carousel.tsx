@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Cloud } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface DatePoint {
   date: string;
@@ -21,6 +22,7 @@ export function DateCarousel({
   onDateSelect,
   lang,
 }: DateCarouselProps) {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (dir: "left" | "right") => {
@@ -112,8 +114,8 @@ export function DateCarousel({
               }}
               title={
                 isCloudy
-                  ? `${lang === "ms" ? "Mendung" : "Cloudy"}: ${point.cloudPct}%`
-                  : `${lang === "ms" ? "Cerah" : "Clear"}: ${point.cloudPct}% ${lang === "ms" ? "litupan" : "cloud"}`
+                  ? `${t("bottomPanel.cloudy")}: ${point.cloudPct}%`
+                  : `${t("bottomPanel.clear")}: ${point.cloudPct}% ${t("bottomPanel.cloudCover").toLowerCase()}`
               }
             >
               {isCloudy && <Cloud size={8} />}

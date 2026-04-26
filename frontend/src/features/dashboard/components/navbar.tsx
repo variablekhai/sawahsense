@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Bell, ChevronRight, Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface NavbarProps {
   selectedFieldName?: string | null;
@@ -20,6 +21,9 @@ export function Navbar({
   onAlertClick,
   onMenuClick,
 }: NavbarProps) {
+  const { t } = useTranslation();
+  const isMalay = lang === "ms";
+
   return (
     <nav
       style={{
@@ -91,7 +95,7 @@ export function Navbar({
             fontFamily: "IBM Plex Sans, sans-serif",
           }}
         >
-          <span>{lang === "ms" ? "Semua Ladang" : "All Fields"}</span>
+          <span>{t("nav.allFields")}</span>
           {selectedFieldName && (
             <>
               <ChevronRight size={12} style={{ opacity: 0.5 }} />
@@ -109,7 +113,7 @@ export function Navbar({
         <button
           onClick={onLangToggle}
           style={{
-            padding: "4px 10px",
+            padding: "4px 8px",
             borderRadius: "20px",
             border: "1px solid var(--border)",
             background: "var(--bg-surface)",
@@ -120,25 +124,47 @@ export function Navbar({
             cursor: "pointer",
             transition: "all 0.15s ease",
             letterSpacing: "0.03em",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           }}
           onMouseEnter={(e) => {
-            (e.target as HTMLButtonElement).style.color = "var(--text-primary)";
-            (e.target as HTMLButtonElement).style.borderColor =
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "var(--text-primary)";
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
               "var(--accent-green)";
           }}
           onMouseLeave={(e) => {
-            (e.target as HTMLButtonElement).style.color =
+            (e.currentTarget as HTMLButtonElement).style.color =
               "var(--text-secondary)";
-            (e.target as HTMLButtonElement).style.borderColor = "var(--border)";
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
+              "var(--border)";
           }}
         >
-          {lang === "ms" ? "BM | EN" : "EN | BM"}
+          <span aria-hidden="true">
+            {isMalay ? (
+              <Image
+                src="/locales/ms/malay.png"
+                alt="Malay"
+                width={16}
+                height={16}
+              />
+            ) : (
+              <Image
+                src="/locales/en/english.png"
+                alt="English"
+                width={16}
+                height={16}
+              />
+            )}
+          </span>
+          <span>{isMalay ? "Bahasa Melayu" : "English"}</span>
         </button>
 
         {/* Notification bell — opens alerts sidebar */}
         <button
           onClick={onAlertClick}
-          title={lang === "ms" ? "Lihat amaran" : "View alerts"}
+          title={t("nav.viewAlerts")}
           style={{
             position: "relative",
             width: 32,

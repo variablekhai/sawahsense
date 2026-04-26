@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronUp, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { DateCarousel } from "@/features/indices/components/date-carousel";
 import { GDDStrip } from "@/features/indices/components/gdd-strip";
 import { IndexChart } from "@/features/indices/components/index-chart";
@@ -32,6 +33,7 @@ export function BottomPanel({
   onExpandedChange,
   isMobile = false,
 }: BottomPanelProps) {
+  const { t } = useTranslation();
   const { gdd, loading: gddLoading } = useGDD(selectedField);
 
   const panelHeight = expanded ? (isMobile ? 380 : 280) : isMobile ? 48 : 40;
@@ -148,7 +150,7 @@ export function BottomPanel({
                       display: "inline-block",
                     }}
                   />
-                  {source === "live" ? "Live" : "Demo"}
+                  {source === "live" ? t("common.live") : t("common.demo")}
                 </span>
               )}
             </>
@@ -160,9 +162,7 @@ export function BottomPanel({
                 fontFamily: "IBM Plex Sans, sans-serif",
               }}
             >
-              {lang === "ms"
-                ? "Pilih ladang untuk melihat sejarah indeks"
-                : "Select a field to view index history"}
+              {t("bottomPanel.noField")}
             </span>
           )}
         </div>
@@ -180,7 +180,7 @@ export function BottomPanel({
           }}
         >
           {!isMobile && (
-            <span>{lang === "ms" ? "SEJARAH INDEKS" : "INDEX HISTORY"}</span>
+            <span>{t("bottomPanel.indexHistory").toUpperCase()}</span>
           )}
           {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         </div>

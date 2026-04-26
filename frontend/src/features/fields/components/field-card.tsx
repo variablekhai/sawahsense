@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { AlertTriangle, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
+import {
+  getCurrentStage,
+  getStageTranslationKey,
+} from "@/features/fields/lib/stage-definitions";
 import type { Field, Lang } from "@/types";
 
 const ALERT_COLORS: Record<Field["alertLevel"], string> = {
   critical: "#E24B4A",
   warning: "#BA7517",
   healthy: "#639922",
-};
-
-const ALERT_LABELS: Record<Field["alertLevel"], { ms: string; en: string }> = {
-  critical: { ms: "KRITIKAL", en: "CRITICAL" },
-  warning: { ms: "AMARAN", en: "WARNING" },
-  healthy: { ms: "SIHAT", en: "HEALTHY" },
 };
 
 const INDEX_COLORS = {
@@ -38,15 +36,16 @@ export function FieldCard({
   lang,
 }: FieldCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const { t } = useTranslation();
   const alertColor = ALERT_COLORS[field.alertLevel];
-  const alertLabel = ALERT_LABELS[field.alertLevel][lang];
+  const alertLabel = t(`common.${field.alertLevel}`).toUpperCase();
   const isActive = isSelected || isHovered;
 
   const { stage, daysSince } = getCurrentStage(field.transplantingDate) as {
     stage: { nameMy: string; nameEn: string };
     daysSince: number;
   };
-  const stageName = lang === "ms" ? stage.nameMy : stage.nameEn;
+  const stageName = t(getStageTranslationKey(stage));
   const progressPct = Math.min(
     100,
     Math.max(0, Math.round((daysSince / CYCLE_DAYS) * 100)),
@@ -112,7 +111,7 @@ export function FieldCard({
             color: isActive ? "#ffffff" : "var(--text-muted)",
           }}
         >
-          {lang === "ms" ? "Hari" : "Day"} {daysSince} / {CYCLE_DAYS}
+          {t("stages.day")} {daysSince} / {CYCLE_DAYS}
         </span>
       </div>
 
