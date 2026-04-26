@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
+
+import { appConfig } from "@/config/app-config";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SawahSense — Pemantauan Padi Pintar",
-  description:
-    "Sistem pemantauan tanaman padi berkuasa satelit untuk petani Malaysia. Pantau NDVI, EVI, LSWI dan dapatkan nasihat daripada Pak Tani AI.",
-  keywords: [
-    "padi",
-    "NDVI",
-    "GEE",
-    "Google Earth Engine",
-    "pertanian",
-    "Malaysia",
-    "MADA",
-  ],
+  title: appConfig.title,
+  description: appConfig.description,
+  keywords: [...appConfig.keywords],
 };
 
 export default function RootLayout({

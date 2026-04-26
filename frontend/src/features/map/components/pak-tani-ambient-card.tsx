@@ -19,7 +19,7 @@ interface PakTaniAmbientCardProps {
   lang: "ms" | "en";
 }
 
-export default function PakTaniAmbientCard({
+export function PakTaniAmbientCard({
   field,
   insight,
   loading,
@@ -259,3 +259,5 @@ export default function PakTaniAmbientCard({
     </div>
   );
 }
+
+export default PakTaniAmbientCard;

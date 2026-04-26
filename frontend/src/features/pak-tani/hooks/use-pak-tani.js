@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { getCurrentStage } from "../data/stageDefinitions";
-import { getDemoAnswerForField } from "../data/pakTaniDemoQnA";
+import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
+import { getDemoAnswerForField } from "@/features/pak-tani/data/pak-tani-demo-qna";
 
 const insightCache = new Map(); // Cache per fieldId per day
 

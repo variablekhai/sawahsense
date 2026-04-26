@@ -9,36 +9,21 @@ import {
   Bell,
   Bot,
 } from "lucide-react";
-import FieldsTab from "./FieldsTab";
-import TasksTab from "./TasksTab";
-import AlertsTab from "./AlertsTab";
-import PakTaniTab from "./PakTaniTab";
-
-interface Field {
-  id: string;
-  name: string;
-  location: string;
-  alertLevel: "healthy" | "warning" | "critical";
-  latestIndices: { ndvi: number; evi: number; lswi: number };
-  transplantingDate: string;
-  activeAlert?: {
-    type: string;
-    message_ms: string;
-    message_en: string;
-    percentDrop?: number;
-  };
-  areaHa?: number;
-  variety?: string;
-}
+import { AlertsTab } from "@/features/alerts/components/alerts-tab";
+import { FieldsTab } from "@/features/fields/components/fields-tab";
+import { PakTaniTab } from "@/features/pak-tani/components/pak-tani-tab";
+import { TasksTab } from "@/features/tasks/components/tasks-tab";
+import type { Task } from "@/features/tasks/types/task";
+import type { Field, Lang, Message, TabId } from "@/types";
 
 interface SidebarProps {
   fields: Field[];
-  selectedFieldId: string | null;
-  onFieldSelect: (id: string) => void;
-  lang: "ms" | "en";
-  activeTab?: "fields" | "tasks" | "alerts" | "pakTani";
-  onTabChange?: (tab: "fields" | "tasks" | "alerts" | "pakTani") => void;
-  pakTaniMessages?: any[];
+  selectedFieldId: Field["id"] | null;
+  onFieldSelect: (id: Field["id"]) => void;
+  lang: Lang;
+  activeTab?: TabId;
+  onTabChange?: (tab: TabId) => void;
+  pakTaniMessages?: Message[];
   pakTaniLoading?: boolean;
   pakTaniInsightLoading?: boolean;
   onPakTaniSend?: (msg: string) => void;
@@ -46,14 +31,12 @@ interface SidebarProps {
   onAddField?: () => void;
   isAddingField?: boolean;
   onCancelAddField?: () => void;
-  tasks?: any[];
-  setTasks?: any;
+  tasks: Task[];
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   isMobile?: boolean;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }
-
-type TabId = "fields" | "tasks" | "alerts" | "pakTani";
 
 const TABS: {
   id: TabId;
@@ -69,7 +52,7 @@ const TABS: {
 
 const SIDEBAR_WIDTH = "var(--sidebar-width)";
 
-export default function Sidebar({
+export function Sidebar({
   fields,
   selectedFieldId,
   onFieldSelect,
@@ -84,7 +67,7 @@ export default function Sidebar({
   onAddField,
   isAddingField = false,
   onCancelAddField,
-  tasks = [],
+  tasks,
   setTasks,
   isMobile = false,
   collapsed = false,
@@ -298,3 +281,5 @@ export default function Sidebar({
     </>
   );
 }
+
+export default Sidebar;

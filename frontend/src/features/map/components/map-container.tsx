@@ -2,28 +2,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Wheat, Pencil, Info } from "lucide-react";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-
-interface Field {
-  id: string;
-  name: string;
-  geometry: {
-    type: string;
-    coordinates: number[][][];
-  };
-  centroid: [number, number];
-  alertLevel: "healthy" | "warning" | "critical";
-  latestIndices: { ndvi: number; evi: number; lswi: number };
-  activeAlert?: {
-    type: string;
-    message_ms: string;
-    message_en: string;
-  };
-  heatmapBounds?: [[number, number], [number, number]];
-  tileBasePath?: string;
-  acquisitionDates?: Array<{ date: string; cloudPct: number }>;
-}
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import type { Field, IndexType, Lang } from "@/types";
 
 interface NewFieldDraft {
   latlngs: [number, number][];
@@ -37,9 +18,9 @@ interface MapContainerProps {
   onFieldAdd?: (
     field: Omit<Field, "id" | "timeSeries" | "transplantingDate">,
   ) => void;
-  activeIndex: "NDVI" | "EVI" | "LSWI";
-  onActiveIndexChange: (index: "NDVI" | "EVI" | "LSWI") => void;
-  lang: "ms" | "en";
+  activeIndex: IndexType;
+  onActiveIndexChange: (index: IndexType) => void;
+  lang: Lang;
   onAmbientCardTrigger: (field: Field) => void;
   /** The currently selected satellite acquisition date (from BottomPanel) */
   selectedDate: string | null;
@@ -626,7 +607,7 @@ function IndexToggleBar({
 }
 
 // ─── Main MapContainer ─────────────────────────────────────────────────────────
-export default function MapContainer({
+export function MapContainer({
   fields,
   selectedFieldId,
   onFieldSelect,
@@ -1086,3 +1067,5 @@ export default function MapContainer({
     </div>
   );
 }
+
+export default MapContainer;

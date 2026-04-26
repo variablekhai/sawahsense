@@ -1,6 +1,8 @@
 // Alert thresholds and rules engine
 // Returns computed alerts from field + time series data
 
+import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
+
 export const ALERT_RULES = [
   {
     id: "EVI_DROP",
@@ -29,7 +31,6 @@ export const ALERT_RULES = [
     id: "NDVI_LOW_HEADING",
     level: "critical",
     check: (field) => {
-      const { getCurrentStage } = require("./stageDefinitions");
       const { stage } = getCurrentStage(field.transplantingDate);
       if (stage.id === "heading" && field.latestIndices.ndvi < 0.4) {
         return {

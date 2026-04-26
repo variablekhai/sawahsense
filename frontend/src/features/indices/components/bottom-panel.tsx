@@ -1,31 +1,16 @@
 "use client";
 
 import { ChevronUp, ChevronDown } from "lucide-react";
-import IndexChart from "./IndexChart";
-import DateCarousel from "./DateCarousel";
-import GDDStrip from "./GDDStrip";
-import { useGDD } from "../../hooks/useGDD";
-
-interface Field {
-  id: string;
-  name: string;
-  centroid: [number, number];
-  transplantingDate: string;
-  latestIndices: { ndvi: number; evi: number; lswi: number };
-  timeSeries: Array<{
-    date: string;
-    ndvi: number;
-    evi: number;
-    lswi: number;
-    cloudPct: number;
-  }>;
-  acquisitionDates?: Array<{ date: string; cloudPct: number }>;
-}
+import { DateCarousel } from "@/features/indices/components/date-carousel";
+import { GDDStrip } from "@/features/indices/components/gdd-strip";
+import { IndexChart } from "@/features/indices/components/index-chart";
+import { useGDD } from "@/features/indices/hooks/use-gdd";
+import type { Field, Lang } from "@/types";
 
 interface BottomPanelProps {
   selectedField: Field | null;
   source: "live" | "demo";
-  lang: "ms" | "en";
+  lang: Lang;
   sidebarWidth: number;
   /** Lifted from page.tsx — shared with MapContainer */
   selectedDate: string | null;
@@ -36,7 +21,7 @@ interface BottomPanelProps {
   isMobile?: boolean;
 }
 
-export default function BottomPanel({
+export function BottomPanel({
   selectedField,
   source,
   lang,
@@ -266,3 +251,5 @@ export default function BottomPanel({
     </div>
   );
 }
+
+export default BottomPanel;

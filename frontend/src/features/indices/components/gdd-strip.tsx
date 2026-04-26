@@ -16,7 +16,7 @@ interface GDDStripProps {
   lang: "ms" | "en";
 }
 
-export default function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
+export function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
   if (loading) {
     return (
       <div
@@ -218,3 +218,5 @@ export default function GDDStrip({ gdd, loading, lang }: GDDStripProps) {
     </div>
   );
 }
+
+export default GDDStrip;

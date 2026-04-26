@@ -1,7 +1,7 @@
 "use client";
 
 import { MapPin, AlertTriangle } from "lucide-react";
-import { getCurrentStage } from "../../data/stageDefinitions";
+import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
 
 interface Field {
   id: string;
@@ -41,7 +41,7 @@ const ALERT_LABELS = {
   healthy: { ms: "Sihat", en: "Healthy" },
 };
 
-export default function FieldsTab({
+export function FieldsTab({
   fields,
   selectedFieldId,
   onFieldSelect,
@@ -341,3 +341,5 @@ export default function FieldsTab({
     </div>
   );
 }
+
+export default FieldsTab;

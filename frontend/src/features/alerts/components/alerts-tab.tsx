@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MapPin, Plus, Circle, Wheat } from "lucide-react";
-import { getCurrentStage } from "../../data/stageDefinitions";
+import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
 
 interface Field {
   id: string;
@@ -48,7 +48,7 @@ const LEVEL_CONFIG = {
   },
 };
 
-export default function AlertsTab({
+export function AlertsTab({
   fields,
   onFieldSelect,
   onCreateTask,
@@ -305,3 +305,5 @@ export default function AlertsTab({
     </div>
   );
 }
+
+export default AlertsTab;

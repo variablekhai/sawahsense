@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DEMO_FIELDS, getFieldById } from "../data/demoFields";
+import { DEMO_FIELDS, getFieldById } from "@/features/fields/data/demo-fields";
 
 /**
  * Hook to fetch field index data

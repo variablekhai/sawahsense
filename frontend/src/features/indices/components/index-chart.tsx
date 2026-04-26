@@ -11,7 +11,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
-import { STAGES } from "../../data/stageDefinitions";
+import { STAGES } from "@/features/fields/lib/stage-definitions";
 
 interface DataPoint {
   date: string;
@@ -178,7 +178,7 @@ function buildEstimatedSeries(
   return estimated;
 }
 
-export default function IndexChart({
+export function IndexChart({
   timeSeries,
   transplantingDate,
   selectedDate,
@@ -392,3 +392,5 @@ export default function IndexChart({
     </div>
   );
 }
+
+export default IndexChart;

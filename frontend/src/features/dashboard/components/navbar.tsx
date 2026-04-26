@@ -12,7 +12,7 @@ interface NavbarProps {
   onMenuClick?: () => void;
 }
 
-export default function Navbar({
+export function Navbar({
   selectedFieldName,
   alertCount = 0,
   lang,
@@ -187,3 +187,5 @@ export default function Navbar({
     </nav>
   );
 }
+
+export default Navbar;

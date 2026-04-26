@@ -15,7 +15,7 @@ interface DateCarouselProps {
   lang: "ms" | "en";
 }
 
-export default function DateCarousel({
+export function DateCarousel({
   timeSeries,
   selectedDate,
   onDateSelect,
@@ -154,3 +154,5 @@ export default function DateCarousel({
     </div>
   );
 }
+
+export default DateCarousel;

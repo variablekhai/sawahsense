@@ -2,21 +2,8 @@
 
 import { useState } from "react";
 import { CheckSquare, Square, MessageCircle, Plus, X } from "lucide-react";
-import { getCurrentStage } from "../../data/stageDefinitions";
-
-export interface Task {
-  id: string;
-  title: string;
-  fieldId: string;
-  fieldName: string;
-  dueDate: string;
-  dueTime: string;
-  status: "pending" | "completed";
-  alertMessage?: string;
-  eviValue?: number;
-  ndviValue?: number;
-  stage?: string;
-}
+import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
+import type { Task } from "@/features/tasks/types/task";
 
 interface WhatsAppModalProps {
   task: Task;
@@ -255,7 +242,7 @@ interface TasksTabProps {
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
 }
 
-export default function TasksTab({
+export function TasksTab({
   selectedField,
   lang,
   tasks,
@@ -558,3 +545,5 @@ export default function TasksTab({
     </div>
   );
 }
+
+export default TasksTab;

@@ -1,20 +1,23 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import Navbar from "../src/components/Navbar";
-import Sidebar from "../src/components/Sidebar/Sidebar";
-import PakTaniAmbientCard from "../src/components/Map/PakTaniAmbientCard";
-import BottomPanel from "../src/components/BottomPanel/BottomPanel";
-import { getFieldsSortedByAlert } from "../src/data/demoFields";
-import { usePakTani } from "../src/hooks/usePakTani";
-import { Task } from "../src/components/Sidebar/TasksTab";
-import type { Field } from "../src/types";
-import { useIsMobile } from "../src/hooks/useMobile";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-// Dynamic import for map (SSR incompatible)
+import { BottomPanel } from "@/features/indices/components/bottom-panel";
+import { getFieldsSortedByAlert } from "@/features/fields/data/demo-fields";
+import { Navbar } from "@/features/dashboard/components/navbar";
+import { Sidebar } from "@/features/dashboard/components/sidebar";
+import { PakTaniAmbientCard } from "@/features/map/components/pak-tani-ambient-card";
+import { usePakTani } from "@/features/pak-tani/hooks/use-pak-tani";
+import type { Task } from "@/features/tasks/types/task";
+import { useIsMobile } from "@/hooks/use-mobile";
+import type { Field, TabId } from "@/types";
+
 const MapContainer = dynamic(
-  () => import("../src/components/Map/MapContainer"),
+  () =>
+    import("@/features/map/components/map-container").then(
+      (module) => module.MapContainer,
+    ),
   {
     ssr: false,
     loading: () => (
@@ -56,20 +59,24 @@ const MapContainer = dynamic(
   },
 );
 
-type TabId = "fields" | "tasks" | "alerts" | "pakTani";
-
-export default function Home() {
+export function DashboardShell() {
   const [lang, setLang] = useState<"ms" | "en">("en");
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("fields");
   const [activeIndex, setActiveIndex] = useState<"NDVI" | "EVI" | "LSWI">(
     "NDVI",
   );
-  const [ambientField, setAmbientField] = useState<any>(null);
+  const [ambientField, setAmbientField] = useState<Field | null>(null);
   const [dataSource] = useState<"live" | "demo">("demo");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [bottomPanelExpanded, setBottomPanelExpanded] = useState(false);
+  const [isAddingField, setIsAddingField] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [userFields, setUserFields] = useState<Field[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const isMobile = useIsMobile();
+
   const panelHeight = bottomPanelExpanded
     ? isMobile
       ? 380
@@ -78,19 +85,8 @@ export default function Home() {
       ? 48
       : 40;
 
-  // Imperative ref so sidebar "Add Field" button can trigger map draw mode
   const startDrawingRef = useRef<(() => void) | null>(null);
   const cancelDrawingRef = useRef<(() => void) | null>(null);
-  const [isAddingField, setIsAddingField] = useState(false);
-
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  // Extra fields from user-drawn polygons
-  const [userFields, setUserFields] = useState<Field[]>([]);
-
-  // Tasks state
-  const [tasks, setTasks] = useState<Task[]>([]);
 
   const handleAddTask = useCallback((task: Task) => {
     setTasks((prev) => [task, ...prev]);
@@ -98,7 +94,7 @@ export default function Home() {
 
   const baseFields = getFieldsSortedByAlert() as Field[];
   const fields: Field[] = [...baseFields, ...userFields];
-  const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
+  const selectedField = fields.find((field) => field.id === selectedFieldId) ?? null;
 
   const {
     messages: pakTaniMessages,
@@ -109,21 +105,22 @@ export default function Home() {
     clearConversation,
   } = usePakTani(handleAddTask);
 
-  const alertCount = fields.filter((f) => f.alertLevel !== "healthy").length;
+  const alertCount = fields.filter((field) => field.alertLevel !== "healthy").length;
 
   const handleFieldSelect = useCallback(
     (fieldId: string | null) => {
       setSelectedFieldId(fieldId);
-      const field = fields.find((f) => f.id === fieldId);
+      const field = fields.find((item) => item.id === fieldId);
+
       if (field?.activeAlert) {
         setAmbientField(field);
       }
-      // Auto-select the latest clear acquisition for this field
+
       if (field?.acquisitionDates) {
-        const clear = [...field.acquisitionDates]
+        const clearDate = [...field.acquisitionDates]
           .reverse()
-          .find((d) => d.cloudPct <= 40);
-        setSelectedDate(clear?.date ?? null);
+          .find((date) => date.cloudPct <= 40);
+        setSelectedDate(clearDate?.date ?? null);
       } else {
         setSelectedDate(null);
       }
@@ -131,15 +128,11 @@ export default function Home() {
     [fields],
   );
 
-  const handleAmbientCardTrigger = useCallback((field: any) => {
-    setAmbientField(field);
-  }, []);
-
   const handleLoadInsight = useCallback(() => {
     if (selectedField) {
       loadFieldInsight(selectedField, lang);
     }
-  }, [selectedField, loadFieldInsight, lang]);
+  }, [lang, loadFieldInsight, selectedField]);
 
   const handleTabChange = useCallback(
     (tab: TabId) => {
@@ -148,28 +141,25 @@ export default function Home() {
         loadFieldInsight(selectedField, lang);
       }
     },
-    [selectedField, loadFieldInsight, lang],
+    [lang, loadFieldInsight, selectedField],
   );
 
   const handlePakTaniSend = useCallback(
-    (msg: string) => {
+    (message: string) => {
       if (selectedField) {
-        pakTaniSend(msg, selectedField, pakTaniMessages, lang);
+        pakTaniSend(message, selectedField, pakTaniMessages, lang);
       }
     },
-    [selectedField, pakTaniMessages, pakTaniSend, lang],
+    [lang, pakTaniMessages, pakTaniSend, selectedField],
   );
 
   const handleOpenFullPanel = useCallback(() => {
     setActiveTab("pakTani");
-    if (selectedField) loadFieldInsight(selectedField, lang);
-  }, [selectedField, loadFieldInsight, lang]);
+    if (selectedField) {
+      loadFieldInsight(selectedField, lang);
+    }
+  }, [lang, loadFieldInsight, selectedField]);
 
-  useEffect(() => {
-    clearConversation();
-  }, [selectedFieldId, clearConversation]);
-
-  // Handle user adding a new field from drawn polygon
   const handleFieldAdd = useCallback((draft: Partial<Field>) => {
     const id = `user_${Date.now()}`;
     const newField: Field = {
@@ -177,20 +167,25 @@ export default function Home() {
       name: draft.name || "Ladang Baru",
       location: draft.location || "Sekinchan, Selangor",
       geometry: draft.geometry || { type: "Polygon", coordinates: [[]] },
-      centroid: (draft.centroid as [number, number]) || [3.481, 101.027],
+      centroid: draft.centroid || [3.481, 101.027],
       transplantingDate: new Date().toISOString().split("T")[0],
       alertLevel: "healthy",
       latestIndices: { ndvi: 0.45, evi: 0.38, lswi: 0.25 },
-      areaHa: (draft as any).areaHa,
-      variety: (draft as any).variety || "MR263",
+      areaHa: draft.areaHa,
+      variety: draft.variety || "MR263",
       timeSeries: [],
     };
+
     setUserFields((prev) => [...prev, newField]);
     setSelectedFieldId(id);
     setActiveTab("fields");
   }, []);
 
-  const sidebarWidth = isMobile ? 0 : sidebarCollapsed ? 0 : 320;
+  useEffect(() => {
+    clearConversation();
+  }, [clearConversation, selectedFieldId]);
+
+  const sidebarWidth = isMobile || sidebarCollapsed ? 0 : 320;
 
   return (
     <div
@@ -201,19 +196,17 @@ export default function Home() {
         background: "var(--bg-base)",
       }}
     >
-      {/* Navbar */}
       <Navbar
         selectedFieldName={selectedField?.name || null}
         alertCount={alertCount}
         lang={lang}
-        onLangToggle={() => setLang((l) => (l === "ms" ? "en" : "ms"))}
+        onLangToggle={() => setLang((currentLang) => (currentLang === "ms" ? "en" : "ms"))}
         onAlertClick={() => handleTabChange("alerts")}
         onMenuClick={
-          isMobile ? () => setMobileSidebarOpen(!mobileSidebarOpen) : undefined
+          isMobile ? () => setMobileSidebarOpen((open) => !open) : undefined
         }
       />
 
-      {/* Sidebar Overlay for Mobile */}
       {isMobile && mobileSidebarOpen && (
         <div
           onClick={() => setMobileSidebarOpen(false)}
@@ -227,13 +220,14 @@ export default function Home() {
         />
       )}
 
-      {/* Sidebar */}
       <Sidebar
         fields={fields}
         selectedFieldId={selectedFieldId}
         onFieldSelect={(id) => {
           handleFieldSelect(id);
-          if (isMobile) setMobileSidebarOpen(false);
+          if (isMobile) {
+            setMobileSidebarOpen(false);
+          }
         }}
         lang={lang}
         activeTab={activeTab}
@@ -252,14 +246,13 @@ export default function Home() {
         collapsed={isMobile ? !mobileSidebarOpen : sidebarCollapsed}
         onToggleCollapse={() => {
           if (isMobile) {
-            setMobileSidebarOpen(!mobileSidebarOpen);
+            setMobileSidebarOpen((open) => !open);
           } else {
-            setSidebarCollapsed(!sidebarCollapsed);
+            setSidebarCollapsed((collapsed) => !collapsed);
           }
         }}
       />
 
-      {/* Main map area */}
       <div
         className="panel-transition"
         style={{
@@ -278,7 +271,7 @@ export default function Home() {
           activeIndex={activeIndex}
           onActiveIndexChange={setActiveIndex}
           lang={lang}
-          onAmbientCardTrigger={handleAmbientCardTrigger}
+          onAmbientCardTrigger={setAmbientField}
           selectedDate={selectedDate}
           bottomOffset={panelHeight}
           startDrawingRef={startDrawingRef}
@@ -287,7 +280,6 @@ export default function Home() {
           initialCenter={fields[0]?.centroid ?? [3.481, 101.0268]}
         />
 
-        {/* Pak Tani Ambient Card */}
         {ambientField && (
           <div
             style={{
@@ -303,7 +295,7 @@ export default function Home() {
               insight={
                 (
                   pakTaniMessages as Array<{ role: string; content: string }>
-                ).find((m) => m.role === "assistant")?.content || null
+                ).find((message) => message.role === "assistant")?.content || null
               }
               loading={pakTaniInsightLoading}
               onDismiss={() => setAmbientField(null)}
@@ -314,7 +306,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* Bottom Panel */}
       <BottomPanel
         selectedField={selectedField}
         source={dataSource}

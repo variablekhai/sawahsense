@@ -9,9 +9,9 @@ import {
   Circle,
   Camera,
 } from "lucide-react";
-import { getCurrentStage } from "../../data/stageDefinitions";
-import { getSuggestedQuestions } from "../../data/suggestedQuestions";
-import { getDemoSuggestedQuestionsForField } from "../../data/pakTaniDemoQnA";
+import { getCurrentStage } from "@/features/fields/lib/stage-definitions";
+import { getDemoSuggestedQuestionsForField } from "@/features/pak-tani/data/pak-tani-demo-qna";
+import { getSuggestedQuestions } from "@/features/pak-tani/data/suggested-questions";
 
 interface Message {
   role: "user" | "assistant";
@@ -46,7 +46,7 @@ interface PakTaniTabProps {
   lang: "ms" | "en";
 }
 
-export default function PakTaniTab({
+export function PakTaniTab({
   fields,
   selectedField,
   onFieldSelect,
@@ -703,3 +703,5 @@ export default function PakTaniTab({
     </div>
   );
 }
+
+export default PakTaniTab;
