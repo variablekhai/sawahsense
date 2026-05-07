@@ -31,9 +31,17 @@ interface MapContainerProps {
   /** Imperative ref so the sidebar/parent can cancel drawing mode */
   cancelDrawingRef?: React.MutableRefObject<(() => void) | null>;
   /** Inform parent/sidebar when field-adding flow is active */
-  onAddFieldStateChange?: (isAdding: boolean) => void;
+  onAddFieldStateChange?: (isAdding: boolean, hasDraft?: boolean) => void;
   /** Initial map center — defaults to first field centroid */
   initialCenter?: [number, number];
+  /** Imperative ref so the onboarding sidebar can fly to a location */
+  flyToRef?: React.MutableRefObject<((lat: number, lng: number) => void) | null>;
+  /** When true, AddFieldModal is suppressed — parent uses confirmFieldRef instead */
+  suppressFieldModal?: boolean;
+  /** Imperative ref to confirm the drawn field from onboarding step 3 */
+  confirmFieldRef?: React.MutableRefObject<((name: string, variety: string, sowingDate: string) => void) | null>;
+  /** Initial map zoom level */
+  initialZoom?: number;
 }
 
 const ALERT_COLORS = {
@@ -622,6 +630,10 @@ export function MapContainer({
   cancelDrawingRef,
   onAddFieldStateChange,
   initialCenter = [3.481, 101.0268],
+  flyToRef,
+  suppressFieldModal = false,
+  confirmFieldRef,
+  initialZoom,
 }: MapContainerProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -651,7 +663,7 @@ export function MapContainer({
     // Centre on first field (or Sekinchan fallback)
     const map = L.map(mapRef.current!, {
       center: initialCenter,
-      zoom: 14,
+      zoom: initialZoom || 14,
       zoomControl: false,
       attributionControl: true,
     });
@@ -878,21 +890,40 @@ export function MapContainer({
     setDrawMode(false);
   }, []);
 
+  const flyTo = useCallback((lat: number, lng: number) => {
+    if (!mapInstanceRef.current) return;
+    mapInstanceRef.current.flyTo([lat, lng], 15, {
+      animate: true,
+      duration: 1.5,
+    });
+  }, []);
+
   // Expose startDrawing imperatively so the sidebar can trigger it
   useEffect(() => {
     if (startDrawingRef) startDrawingRef.current = startDrawing;
     if (cancelDrawingRef) cancelDrawingRef.current = cancelDrawing;
+    if (flyToRef) flyToRef.current = flyTo;
     return () => {
       if (startDrawingRef) startDrawingRef.current = null;
       if (cancelDrawingRef) cancelDrawingRef.current = null;
+      if (flyToRef) flyToRef.current = null;
     };
-  }, [startDrawingRef, startDrawing, cancelDrawingRef, cancelDrawing]);
+  }, [
+    startDrawingRef,
+    startDrawing,
+    cancelDrawingRef,
+    cancelDrawing,
+    flyToRef,
+    flyTo,
+  ]);
+
+
 
   const isAddingField = drawMode || !!newFieldDraft;
 
   useEffect(() => {
-    onAddFieldStateChange?.(isAddingField);
-  }, [isAddingField, onAddFieldStateChange]);
+    onAddFieldStateChange?.(isAddingField, !!newFieldDraft);
+  }, [isAddingField, newFieldDraft, onAddFieldStateChange]);
 
   // Handle new field confirmed from modal
   const handleFieldConfirm = useCallback(
@@ -961,6 +992,13 @@ export function MapContainer({
     [newFieldDraft, onFieldAdd],
   );
 
+  useEffect(() => {
+    if (confirmFieldRef) confirmFieldRef.current = handleFieldConfirm;
+    return () => {
+      if (confirmFieldRef) confirmFieldRef.current = null;
+    };
+  }, [confirmFieldRef, handleFieldConfirm]);
+
   const handleFieldCancel = useCallback(() => {
     cancelDrawing();
   }, [cancelDrawing]);
@@ -979,6 +1017,8 @@ export function MapContainer({
         lang={lang}
         bottomOffset={bottomOffset}
       />
+
+
 
       {/* Draw field button — top-right, below zoom controls */}
       <div
@@ -1056,7 +1096,7 @@ export function MapContainer({
       </div>
 
       {/* New Field Confirmation Modal */}
-      {newFieldDraft && (
+      {newFieldDraft && !suppressFieldModal && (
         <AddFieldModal
           draft={newFieldDraft}
           onConfirm={handleFieldConfirm}
