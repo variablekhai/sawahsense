@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from dotenv import load_dotenv
 import ee
 import twilio
 from twilio.rest import Client
@@ -13,6 +14,10 @@ import anthropic
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+load_dotenv()
+
+MAX_COLLECTION_CLOUD_PCT = 80
+PRIMARY_CLEAR_CLOUD_PCT = 20
 
 app = FastAPI(title="SawahSense Backend")
 
@@ -74,94 +79,113 @@ Rules:
 Current field context is provided as JSON in every message."""
 
 def init_ee():
-    if not ee.data._credentials:
+    try:
+        ee.data.getAssetRoots()
+        return True
+    except Exception:
         project_id = os.getenv("GEE_PROJECT_ID")
         service_account_email = os.getenv("GEE_SERVICE_ACCOUNT_EMAIL")
         private_key = os.getenv("GEE_PRIVATE_KEY")
-        
+
         if not project_id or not service_account_email or not private_key:
             return False
-            
-        private_key = private_key.replace('\\n', '\n')
-        
+
+        private_key = private_key.replace("\\n", "\n")
         credentials = ee.ServiceAccountCredentials(
             service_account_email,
-            key_data=private_key
+            key_data=private_key,
         )
         ee.Initialize(credentials, project=project_id)
+        ee.data.getAssetRoots()
         return True
-    return True
 
 @app.post("/api/gee-indices")
 async def gee_indices(request: GEEIndicesRequest):
     try:
         if not init_ee():
-             raise HTTPException(status_code=503, detail="GEE credentials not configured")
-        
-        # Define field geometry
+            raise HTTPException(status_code=503, detail="GEE credentials not configured")
+
         field_geom = ee.Geometry.Polygon(request.geometry.coordinates)
-        
+
         def calculate_indices(image):
-            nir = image.select("B8")
-            red = image.select("B4")
-            blue = image.select("B2")
-            swir = image.select("B11")
-            
+            nir = image.select("B8").multiply(0.0001)
+            red = image.select("B4").multiply(0.0001)
+            blue = image.select("B2").multiply(0.0001)
+            swir = image.select("B11").multiply(0.0001)
+
             ndvi = nir.subtract(red).divide(nir.add(red)).rename("NDVI")
             evi = image.expression(
                 "2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))",
                 {"NIR": nir, "RED": red, "BLUE": blue}
             ).rename("EVI")
             lswi = nir.subtract(swir).divide(nir.add(swir)).rename("LSWI")
-            
-            return image.addBands([ndvi, evi, lswi]).set("cloud_pct", image.get("CLOUDY_PIXEL_PERCENTAGE"))
 
-        collection = (ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
-                      .filterBounds(field_geom)
-                      .filterDate(request.startDate, request.endDate)
-                      .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 80))
-                      .map(calculate_indices))
-                      
-        image_list = collection.toList(30)
+            return image.addBands([ndvi, evi, lswi])
+
+        collection = (
+            ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
+            .filterBounds(field_geom)
+            .filterDate(request.startDate, request.endDate)
+            .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", MAX_COLLECTION_CLOUD_PCT))
+            .sort("system:time_start", False)
+            .map(calculate_indices)
+        )
+
+        if collection.size().getInfo() == 0:
+            return {
+                "fieldId": request.fieldId,
+                "timeSeries": [],
+                "latestIndices": None,
+                "source": "live",
+            }
+
+        image_list = collection.toList(16)
         size = image_list.size().getInfo()
-        
+
         time_series = []
         for i in range(size):
-            img = ee.Image(image_list.get(i))
-            date = ee.Date(img.get("system:time_start")).format("YYYY-MM-dd").getInfo()
-            cloud_pct = img.get("CLOUDY_PIXEL_PERCENTAGE").getInfo()
-            
-            stats = img.select(["NDVI", "EVI", "LSWI"]).reduceRegion(
+            image = ee.Image(image_list.get(i))
+            date = ee.Date(image.get("system:time_start")).format("YYYY-MM-dd").getInfo()
+            cloud_pct = image.get("CLOUDY_PIXEL_PERCENTAGE").getInfo()
+            stats = image.select(["NDVI", "EVI", "LSWI"]).reduceRegion(
                 reducer=ee.Reducer.mean(),
                 geometry=field_geom,
                 scale=10,
-                maxPixels=1e9
+                maxPixels=1e9,
             ).getInfo()
-            
+
             time_series.append({
                 "date": date,
                 "ndvi": round(stats.get("NDVI"), 3) if stats.get("NDVI") is not None else None,
                 "evi": round(stats.get("EVI"), 3) if stats.get("EVI") is not None else None,
                 "lswi": round(stats.get("LSWI"), 3) if stats.get("LSWI") is not None else None,
-                "cloudPct": round(cloud_pct) if cloud_pct else 0
+                "cloudPct": round(cloud_pct) if cloud_pct else 0,
             })
-            
-        latest_clear = None
-        for p in reversed(time_series):
-            if p["cloudPct"] < 40 and p["ndvi"] is not None:
-                latest_clear = p
-                break
-                
+
+        latest_clear = next(
+            (
+                point for point in time_series
+                if point["cloudPct"] <= PRIMARY_CLEAR_CLOUD_PCT and point["ndvi"] is not None
+            ),
+            None,
+        )
+        latest_point = latest_clear or next(
+            (point for point in time_series if point["ndvi"] is not None),
+            None,
+        )
+
         return {
             "fieldId": request.fieldId,
             "timeSeries": time_series,
             "latestIndices": {
-                "ndvi": latest_clear["ndvi"],
-                "evi": latest_clear["evi"],
-                "lswi": latest_clear["lswi"]
-            } if latest_clear else None,
+                "ndvi": latest_point["ndvi"],
+                "evi": latest_point["evi"],
+                "lswi": latest_point["lswi"],
+            } if latest_point else None,
             "source": "live"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"GEE indices error: {e}")
         raise HTTPException(status_code=503, detail=f"GEE unavailable: {str(e)}")

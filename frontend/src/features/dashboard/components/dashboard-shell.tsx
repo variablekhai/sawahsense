@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { BottomPanel } from "@/features/indices/components/bottom-panel";
-import { getFieldsSortedByAlert } from "@/features/fields/data/demo-fields";
+import { getFieldsSortedByAlert } from "@/features/fields/data/fields";
+import { fetchLiveFieldData } from "@/features/fields/lib/live-field-data";
 import { Navbar } from "@/features/dashboard/components/navbar";
 import { Sidebar } from "@/features/dashboard/components/sidebar";
 import { PakTaniAmbientCard } from "@/features/map/components/pak-tani-ambient-card";
@@ -69,7 +70,7 @@ export function DashboardShell() {
     "NDVI",
   );
   const [ambientField, setAmbientField] = useState<Field | null>(null);
-  const [dataSource] = useState<"live" | "demo">("demo");
+  const [dataSource] = useState<"live" | "demo">("live");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [bottomPanelExpanded, setBottomPanelExpanded] = useState(false);
   const [isAddingField, setIsAddingField] = useState(false);
@@ -96,7 +97,27 @@ export function DashboardShell() {
     setTasks((prev) => [task, ...prev]);
   }, []);
 
-  const baseFields = getFieldsSortedByAlert() as Field[];
+  const initialBaseFields = getFieldsSortedByAlert() as unknown as Field[];
+  const [baseFields, setBaseFields] = useState<Field[]>(initialBaseFields);
+
+  useEffect(() => {
+    async function loadFields() {
+      const updatedFields = await Promise.all(
+        initialBaseFields.map(async (field) => {
+          try {
+            return await fetchLiveFieldData(field);
+          } catch (err) {
+            console.error("Failed to load field data:", err);
+            return field;
+          }
+        }),
+      );
+      setBaseFields(updatedFields);
+      setSelectedFieldId((current) => current ?? updatedFields[0]?.id ?? null);
+    }
+    loadFields();
+  }, []);
+
   const fields: Field[] = [...baseFields, ...userFields];
   const selectedField = fields.find((field) => field.id === selectedFieldId) ?? null;
 
@@ -120,10 +141,9 @@ export function DashboardShell() {
         setAmbientField(field);
       }
 
-      if (field?.acquisitionDates) {
-        const clearDate = [...field.acquisitionDates]
-          .reverse()
-          .find((date) => date.cloudPct <= 40);
+      if (field?.timeSeries) {
+        const clearDate = [...field.timeSeries]
+          .find((item) => item.cloudPct <= 20);
         setSelectedDate(clearDate?.date ?? null);
       } else {
         setSelectedDate(null);
@@ -164,9 +184,9 @@ export function DashboardShell() {
     }
   }, [lang, loadFieldInsight, selectedField]);
 
-  const handleFieldAdd = useCallback((draft: Partial<Field>) => {
+  const handleFieldAdd = useCallback(async (draft: Partial<Field>) => {
     const id = `user_${Date.now()}`;
-    const newField: Field = {
+    const seedField: Field = {
       id,
       name: draft.name || "Ladang Baru",
       location: draft.location || "Sekinchan, Selangor",
@@ -174,11 +194,18 @@ export function DashboardShell() {
       centroid: draft.centroid || [3.481, 101.027],
       transplantingDate: new Date().toISOString().split("T")[0],
       alertLevel: "healthy",
-      latestIndices: { ndvi: 0.45, evi: 0.38, lswi: 0.25 },
+      latestIndices: { ndvi: 0, evi: 0, lswi: 0 },
       areaHa: draft.areaHa,
       variety: draft.variety || "MR263",
       timeSeries: [],
     };
+
+    let newField = seedField;
+    try {
+      newField = await fetchLiveFieldData(seedField);
+    } catch (err) {
+      console.error("Failed to load live data for new field:", err);
+    }
 
     setUserFields((prev) => [...prev, newField]);
     setSelectedFieldId(id);
