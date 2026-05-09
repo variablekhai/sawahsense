@@ -2,6 +2,7 @@ import hashlib
 import logging
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
 
@@ -25,6 +26,8 @@ load_dotenv(BACKEND_DIR / ".env")
 MAX_COLLECTION_CLOUD_PCT = 80
 PRIMARY_CLEAR_CLOUD_PCT = 20
 HEATMAP_DIMENSIONS = 512
+HEATMAP_MAX_CLOUD_PCT = 40  # Skip dates the carousel disables anyway.
+HEATMAP_PARALLELISM = 8
 # Palettes mirror frontend INDEX_LEGENDS in map-container.tsx — keep in sync.
 INDEX_VIS_PARAMS = {
     "ndvi": {
@@ -276,13 +279,29 @@ def compute_index_bands(image):
     return {"ndvi": ndvi, "evi": evi, "lswi": lswi}
 
 
+def compute_clear_mask(image):
+    """Sentinel-2 SCL-based clear mask. 1 = keep, 0 = cloud/shadow/cirrus."""
+    scl = image.select("SCL")
+    cloudy = scl.eq(3).Or(scl.eq(8)).Or(scl.eq(9)).Or(scl.eq(10))
+    return cloudy.Not()
+
+
 def make_heatmap_url(index_image, geom, vis):
     visualized = index_image.clip(geom).visualize(
         min=vis["min"],
         max=vis["max"],
         palette=vis["palette"],
     )
-    return visualized.getThumbURL({
+    # White base inside polygon — shows through where the index is masked (clouds),
+    # but stays transparent outside the field via clip().
+    white_base = (
+        ee.Image.constant([255, 255, 255])
+        .byte()
+        .clip(geom)
+        .rename(["vis-red", "vis-green", "vis-blue"])
+    )
+    composite = ee.ImageCollection([white_base, visualized]).mosaic()
+    return composite.getThumbURL({
         "region": geom,
         "dimensions": HEATMAP_DIMENSIONS,
         "format": "png",
@@ -341,26 +360,34 @@ async def gee_indices(request: GEEIndicesRequest):
             .filterDate(request.startDate, request.endDate)
             .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", MAX_COLLECTION_CLOUD_PCT))
             .sort("system:time_start", False)
-            .limit(16)
+            .limit(60)
         )
 
         feature_collection = collection.map(per_image_feature).getInfo()
         items = feature_collection.get("features", [])
 
-        time_series = []
+        by_date: dict[str, dict] = {}
         for feat in items:
             props = feat.get("properties", {}) or {}
+            date = props.get("date")
+            if not date:
+                continue
             ndvi = props.get("ndvi")
             evi = props.get("evi")
             lswi = props.get("lswi")
             cloud_pct = props.get("cloudPct")
-            time_series.append({
-                "date": props.get("date"),
+            entry = {
+                "date": date,
                 "ndvi": round(ndvi, 3) if ndvi is not None else None,
                 "evi": round(evi, 3) if evi is not None else None,
                 "lswi": round(lswi, 3) if lswi is not None else None,
                 "cloudPct": round(cloud_pct) if cloud_pct is not None else 0,
-            })
+            }
+            existing = by_date.get(date)
+            if existing is None or entry["cloudPct"] < existing["cloudPct"]:
+                by_date[date] = entry
+
+        time_series = sorted(by_date.values(), key=lambda p: p["date"])
 
         if not time_series:
             return {
@@ -372,33 +399,58 @@ async def gee_indices(request: GEEIndicesRequest):
 
         latest_clear = next(
             (
-                point for point in time_series
+                point for point in reversed(time_series)
                 if point["cloudPct"] <= PRIMARY_CLEAR_CLOUD_PCT and point["ndvi"] is not None
             ),
             None,
         )
         latest_point = latest_clear or next(
-            (point for point in time_series if point["ndvi"] is not None),
+            (point for point in reversed(time_series) if point["ndvi"] is not None),
             None,
         )
 
-        heatmap_urls = None
-        heatmap_bounds = None
-        if latest_point:
+        heatmap_dates = [
+            point["date"]
+            for point in time_series
+            if point["ndvi"] is not None
+            and point["cloudPct"] <= HEATMAP_MAX_CLOUD_PCT
+        ]
+
+        def heatmap_for_date(date_str: str):
             try:
-                target_date = latest_point["date"]
-                next_day = ee.Date(target_date).advance(1, "day")
+                next_day = ee.Date(date_str).advance(1, "day")
                 heatmap_image = ee.Image(
-                    collection.filterDate(target_date, next_day).first()
+                    collection.filterDate(date_str, next_day).first()
                 )
+                clear_mask = compute_clear_mask(heatmap_image)
                 bands = compute_index_bands(heatmap_image)
-                heatmap_urls = {
-                    key: make_heatmap_url(bands[key], field_geom, INDEX_VIS_PARAMS[key])
+                urls = {
+                    key: make_heatmap_url(
+                        bands[key].updateMask(clear_mask),
+                        field_geom,
+                        INDEX_VIS_PARAMS[key],
+                    )
                     for key in ("ndvi", "evi", "lswi")
                 }
-                heatmap_bounds = compute_polygon_bounds(request.geometry.coordinates)
+                return date_str, urls
             except Exception as exc:
-                logger.warning(f"Heatmap generation failed for {request.fieldId}: {exc}")
+                logger.warning(
+                    f"Heatmap generation failed for {request.fieldId} @ {date_str}: {exc}"
+                )
+                return date_str, None
+
+        heatmaps_by_date: dict[str, dict[str, str]] = {}
+        if heatmap_dates:
+            with ThreadPoolExecutor(max_workers=HEATMAP_PARALLELISM) as executor:
+                for date_str, urls in executor.map(heatmap_for_date, heatmap_dates):
+                    if urls:
+                        heatmaps_by_date[date_str] = urls
+
+        heatmap_bounds = (
+            compute_polygon_bounds(request.geometry.coordinates)
+            if heatmaps_by_date
+            else None
+        )
 
         return {
             "fieldId": request.fieldId,
@@ -408,9 +460,8 @@ async def gee_indices(request: GEEIndicesRequest):
                 "evi": latest_point["evi"],
                 "lswi": latest_point["lswi"],
             } if latest_point else None,
-            "heatmapUrls": heatmap_urls,
+            "heatmapsByDate": heatmaps_by_date or None,
             "heatmapBounds": heatmap_bounds,
-            "heatmapDate": latest_point["date"] if latest_point else None,
             "source": "live"
         }
     except HTTPException:

@@ -697,7 +697,18 @@ export function MapContainer({
         const alertColor = ALERT_COLORS[field.alertLevel];
 
         const indexKey = activeIndex.toLowerCase() as "ndvi" | "evi" | "lswi";
-        const tileUrl = field.heatmapUrls?.[indexKey] ?? null;
+        const heatmapDates = field.heatmapsByDate
+          ? Object.keys(field.heatmapsByDate)
+          : [];
+        // Sort once so we can fall back to the most recent rendered date.
+        heatmapDates.sort();
+        const effectiveDate =
+          selectedDate && field.heatmapsByDate?.[selectedDate]
+            ? selectedDate
+            : (heatmapDates[heatmapDates.length - 1] ?? null);
+        const tileUrl = effectiveDate
+          ? field.heatmapsByDate?.[effectiveDate]?.[indexKey] ?? null
+          : null;
         const isHeatmapVisible = !!tileUrl && !!field.heatmapBounds;
 
         const polygon = L.polygon(
