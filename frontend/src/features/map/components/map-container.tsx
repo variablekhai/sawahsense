@@ -423,6 +423,7 @@ function IndexToggleBar({
 
   return (
     <div
+      data-tour="index-legend"
       style={{
         position: "absolute",
         bottom: `${bottomOffset + 12}px`,

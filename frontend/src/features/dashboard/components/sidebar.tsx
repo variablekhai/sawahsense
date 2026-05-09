@@ -117,6 +117,7 @@ export function Sidebar({
             return (
               <button
                 key={tab.id}
+                data-tour={`tab-${tab.id}`}
                 onClick={() => onTabChange?.(tab.id)}
                 title={label}
                 style={{

@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 @import "tailwindcss";
+@import "driver.js/dist/driver.css";
 
 :root {
   /* Core backgrounds */
@@ -366,4 +367,122 @@ select:focus {
 }
 .leaflet-control {
   z-index: 800;
+}
+
+/* ─── Driver.js tour — themed to match SawahSense ─────────────── */
+.driver-popover.sawahsense-tour {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(63, 185, 80, 0.08);
+  padding: 18px 18px 14px;
+  max-width: 320px;
+  font-family: "IBM Plex Sans", sans-serif;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-title {
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin: 0 0 6px;
+  padding-right: 28px;
+  line-height: 1.3;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-description {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-progress-text {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-footer {
+  margin-top: 8px;
+  gap: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-navigation-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-prev-btn,
+.driver-popover.sawahsense-tour .driver-popover-next-btn {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  text-shadow: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-prev-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.driver-popover.sawahsense-tour .driver-popover-next-btn {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  color: #0d1117;
+  font-weight: 600;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-next-btn:hover {
+  background: var(--accent-teal);
+  border-color: var(--accent-teal);
+}
+
+.driver-popover.sawahsense-tour .driver-popover-close-btn {
+  color: var(--text-muted);
+  font-size: 18px;
+  width: 22px;
+  height: 22px;
+  top: 10px;
+  right: 10px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.driver-popover.sawahsense-tour .driver-popover-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.driver-popover.sawahsense-tour .driver-popover-arrow-side-top {
+  border-top-color: var(--bg-surface);
+}
+.driver-popover.sawahsense-tour .driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--bg-surface);
+}
+.driver-popover.sawahsense-tour .driver-popover-arrow-side-left {
+  border-left-color: var(--bg-surface);
+}
+.driver-popover.sawahsense-tour .driver-popover-arrow-side-right {
+  border-right-color: var(--bg-surface);
 }

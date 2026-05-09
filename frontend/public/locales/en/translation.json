@@ -146,5 +146,44 @@
     "noField": "Select a field to view index history",
     "last120Days": "Last 120 Days",
     "fullSeason": "Full Season"
+  },
+  "tour": {
+    "startButton": "Tour",
+    "next": "Next",
+    "prev": "Back",
+    "done": "Done",
+    "finish": "Got it",
+    "welcome": {
+      "title": "Welcome to SawahSense",
+      "body": "A quick 60-second tour of the tools that help you keep your paddy healthy. You can skip anytime."
+    },
+    "fields": {
+      "title": "Your fields",
+      "body": "Every field you manage lives here, sorted by health status — colour-coded so you can spot trouble at a glance."
+    },
+    "alerts": {
+      "title": "Alerts",
+      "body": "When NDVI drops, water stress builds, or growth slows, you'll see it here first — turn each alert into an action."
+    },
+    "tasks": {
+      "title": "Tasks",
+      "body": "Plan your week. Tasks created from alerts show up here so nothing slips through."
+    },
+    "pakTani": {
+      "title": "Pak Tani",
+      "body": "Your AI farming advisor. Ask anything about your selected field and get advice grounded in its real data."
+    },
+    "indices": {
+      "title": "Vegetation indices",
+      "body": "Three satellite indices tell you how your paddy is doing. NDVI shows greenness — healthy plants reflect more near-infrared light. EVI is a sharper view of canopy health, especially when crops are dense. LSWI tracks water content — your warning sign when the field is drying out. Tap any to switch the map overlay and see the colour scale."
+    },
+    "language": {
+      "title": "Language",
+      "body": "Switch between Bahasa Melayu and English at any time."
+    },
+    "replay": {
+      "title": "Replay anytime",
+      "body": "Tap this button whenever you want to see the tour again. Selamat berkebun!"
+    }
   }
 }

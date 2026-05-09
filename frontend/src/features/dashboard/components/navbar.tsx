@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Bell, ChevronRight, Menu } from "lucide-react";
+import { Bell, ChevronRight, HelpCircle, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface NavbarProps {
@@ -11,6 +11,7 @@ interface NavbarProps {
   onLangToggle: () => void;
   onAlertClick?: () => void;
   onMenuClick?: () => void;
+  onTourClick?: () => void;
 }
 
 export function Navbar({
@@ -20,6 +21,7 @@ export function Navbar({
   onLangToggle,
   onAlertClick,
   onMenuClick,
+  onTourClick,
 }: NavbarProps) {
   const { t } = useTranslation();
   const isMalay = lang === "ms";
@@ -42,7 +44,10 @@ export function Navbar({
       }}
     >
       {/* Left: Logo */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <div
+        data-tour="welcome"
+        style={{ display: "flex", alignItems: "center", gap: "10px" }}
+      >
         {onMenuClick && (
           <button
             onClick={onMenuClick}
@@ -109,8 +114,49 @@ export function Navbar({
 
       {/* Right: Controls */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* Tutorial / tour trigger */}
+        {onTourClick && (
+          <button
+            data-tour="tutorial-btn"
+            onClick={onTourClick}
+            title={t("tour.startButton")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 10px",
+              borderRadius: "20px",
+              border: "1px solid var(--border)",
+              background: "var(--bg-surface)",
+              color: "var(--text-secondary)",
+              fontSize: "0.75rem",
+              fontFamily: "IBM Plex Sans, sans-serif",
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              letterSpacing: "0.01em",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--accent-green)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "var(--accent-green)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "var(--text-secondary)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "var(--border)";
+            }}
+          >
+            <HelpCircle size={13} />
+            <span>{t("tour.startButton")}</span>
+          </button>
+        )}
+
         {/* Language toggle */}
         <button
+          data-tour="lang-toggle"
           onClick={onLangToggle}
           style={{
             padding: "4px 8px",
@@ -163,6 +209,7 @@ export function Navbar({
 
         {/* Notification bell — opens alerts sidebar */}
         <button
+          data-tour="notification-bell"
           onClick={onAlertClick}
           title={t("nav.viewAlerts")}
           style={{

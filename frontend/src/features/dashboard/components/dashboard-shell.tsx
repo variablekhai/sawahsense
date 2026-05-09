@@ -7,6 +7,7 @@ import { BottomPanel } from "@/features/indices/components/bottom-panel";
 import { getFieldsSortedByAlert } from "@/features/fields/data/demo-fields";
 import { Navbar } from "@/features/dashboard/components/navbar";
 import { Sidebar } from "@/features/dashboard/components/sidebar";
+import { useAppTour } from "@/features/dashboard/hooks/use-app-tour";
 import { PakTaniAmbientCard } from "@/features/map/components/pak-tani-ambient-card";
 import { usePakTani } from "@/features/pak-tani/hooks/use-pak-tani";
 import type { Task } from "@/features/tasks/types/task";
@@ -148,6 +149,12 @@ export function DashboardShell() {
     [lang, loadFieldInsight, selectedField],
   );
 
+  const { startTour } = useAppTour({
+    onTabChange: handleTabChange,
+    isMobile,
+    setSidebarOpen: setMobileSidebarOpen,
+  });
+
   const handlePakTaniSend = useCallback(
     (message: string) => {
       if (selectedField) {
@@ -209,6 +216,7 @@ export function DashboardShell() {
         onMenuClick={
           isMobile ? () => setMobileSidebarOpen((open) => !open) : undefined
         }
+        onTourClick={startTour}
       />
 
       {isMobile && mobileSidebarOpen && (

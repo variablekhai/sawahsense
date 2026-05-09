@@ -146,5 +146,44 @@
     "noField": "Pilih ladang untuk melihat sejarah indeks",
     "last120Days": "120 Hari Terakhir",
     "fullSeason": "Musim Penuh"
+  },
+  "tour": {
+    "startButton": "Tutorial",
+    "next": "Seterusnya",
+    "prev": "Kembali",
+    "done": "Selesai",
+    "finish": "Faham",
+    "welcome": {
+      "title": "Selamat datang ke SawahSense",
+      "body": "Lawatan ringkas 60 saat untuk kenali alat yang membantu jaga ladang anda. Boleh skip bila-bila masa."
+    },
+    "fields": {
+      "title": "Ladang anda",
+      "body": "Semua ladang anda tersusun di sini ikut status kesihatan — warna memudahkan anda kenal pasti masalah dengan pantas."
+    },
+    "alerts": {
+      "title": "Amaran",
+      "body": "Bila NDVI menurun, paras air rendah, atau pertumbuhan perlahan — amaran muncul di sini dahulu. Jadikan setiap amaran sebagai tindakan."
+    },
+    "tasks": {
+      "title": "Tugas",
+      "body": "Rancang minggu anda. Tugas dari amaran akan dipaparkan di sini supaya tiada yang terlepas."
+    },
+    "pakTani": {
+      "title": "Pak Tani",
+      "body": "Penasihat tani AI anda. Tanya apa-apa tentang ladang anda dan dapat nasihat berdasarkan data sebenar."
+    },
+    "indices": {
+      "title": "Indeks tumbuhan",
+      "body": "Tiga indeks satelit menceritakan keadaan padi anda. NDVI menunjukkan kehijauan — tanaman sihat memantul lebih banyak cahaya inframerah. EVI memberi pandangan lebih jelas tentang kesihatan kanopi, terutama bila tanaman padat. LSWI menjejak kandungan air — petanda awal bila ladang mula kering. Tekan mana-mana untuk tukar lapisan peta dan lihat skala warnanya."
+    },
+    "language": {
+      "title": "Bahasa",
+      "body": "Tukar antara Bahasa Melayu dan English bila-bila masa."
+    },
+    "replay": {
+      "title": "Ulang bila-bila masa",
+      "body": "Tekan butang ini bila anda nak lihat tutorial ini sekali lagi. Selamat berkebun!"
+    }
   }
 }
