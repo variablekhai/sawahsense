@@ -41,6 +41,9 @@ export async function fetchLiveFieldData(field: Field) {
         }
       : field.latestIndices,
     acquisitionDates: data.timeSeries || [],
+    heatmapUrls: data.heatmapUrls ?? undefined,
+    heatmapBounds: data.heatmapBounds ?? undefined,
+    heatmapDate: data.heatmapDate ?? undefined,
     alertLevel: "healthy",
     activeAlert: undefined,
   } satisfies Field;

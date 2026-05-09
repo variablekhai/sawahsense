@@ -24,6 +24,25 @@ load_dotenv(BACKEND_DIR / ".env")
 
 MAX_COLLECTION_CLOUD_PCT = 80
 PRIMARY_CLEAR_CLOUD_PCT = 20
+HEATMAP_DIMENSIONS = 512
+# Palettes mirror frontend INDEX_LEGENDS in map-container.tsx — keep in sync.
+INDEX_VIS_PARAMS = {
+    "ndvi": {
+        "min": 0.0,
+        "max": 1.0,
+        "palette": ["8b0000", "d29922", "74c476", "3fb950", "1a7f37"],
+    },
+    "evi": {
+        "min": 0.0,
+        "max": 0.9,
+        "palette": ["8b0000", "d29922", "74c476", "3fb950", "1a7f37"],
+    },
+    "lswi": {
+        "min": -0.1,
+        "max": 0.7,
+        "palette": ["f85149", "d29922", "58a6ff", "2171b5", "084594"],
+    },
+}
 PAK_TANI_CHROMA_PATH = BACKEND_DIR / "chroma_db"
 PAK_TANI_COLLECTION = "paddy_knowledge"
 PAK_TANI_EMBED_MODEL = "text-embedding-3-small"
@@ -234,6 +253,42 @@ def pak_tani_retrieve_context(question: str) -> tuple[str, list[str]]:
     sources = list(dict.fromkeys(item["source"] for item in metadatas)) if metadatas else []
     return "\n\n---\n\n".join(documents), sources
 
+def compute_polygon_bounds(coordinates):
+    """Polygon coords [[ [lng, lat], ... ]] -> [[south, west], [north, east]]."""
+    ring = coordinates[0]
+    lngs = [pt[0] for pt in ring]
+    lats = [pt[1] for pt in ring]
+    return [[min(lats), min(lngs)], [max(lats), max(lngs)]]
+
+
+def compute_index_bands(image):
+    nir = image.select("B8").multiply(0.0001)
+    red = image.select("B4").multiply(0.0001)
+    blue = image.select("B2").multiply(0.0001)
+    swir = image.select("B11").multiply(0.0001)
+
+    ndvi = nir.subtract(red).divide(nir.add(red)).rename("NDVI")
+    evi = image.expression(
+        "2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))",
+        {"NIR": nir, "RED": red, "BLUE": blue},
+    ).rename("EVI")
+    lswi = nir.subtract(swir).divide(nir.add(swir)).rename("LSWI")
+    return {"ndvi": ndvi, "evi": evi, "lswi": lswi}
+
+
+def make_heatmap_url(index_image, geom, vis):
+    visualized = index_image.clip(geom).visualize(
+        min=vis["min"],
+        max=vis["max"],
+        palette=vis["palette"],
+    )
+    return visualized.getThumbURL({
+        "region": geom,
+        "dimensions": HEATMAP_DIMENSIONS,
+        "format": "png",
+    })
+
+
 def init_ee():
     try:
         ee.data.getAssetRoots()
@@ -264,19 +319,8 @@ async def gee_indices(request: GEEIndicesRequest):
         field_geom = ee.Geometry.Polygon(request.geometry.coordinates)
 
         def per_image_feature(image):
-            nir = image.select("B8").multiply(0.0001)
-            red = image.select("B4").multiply(0.0001)
-            blue = image.select("B2").multiply(0.0001)
-            swir = image.select("B11").multiply(0.0001)
-
-            ndvi = nir.subtract(red).divide(nir.add(red)).rename("NDVI")
-            evi = image.expression(
-                "2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))",
-                {"NIR": nir, "RED": red, "BLUE": blue},
-            ).rename("EVI")
-            lswi = nir.subtract(swir).divide(nir.add(swir)).rename("LSWI")
-
-            stats = ndvi.addBands([evi, lswi]).reduceRegion(
+            bands = compute_index_bands(image)
+            stats = bands["ndvi"].addBands([bands["evi"], bands["lswi"]]).reduceRegion(
                 reducer=ee.Reducer.mean(),
                 geometry=field_geom,
                 scale=20,
@@ -338,6 +382,24 @@ async def gee_indices(request: GEEIndicesRequest):
             None,
         )
 
+        heatmap_urls = None
+        heatmap_bounds = None
+        if latest_point:
+            try:
+                target_date = latest_point["date"]
+                next_day = ee.Date(target_date).advance(1, "day")
+                heatmap_image = ee.Image(
+                    collection.filterDate(target_date, next_day).first()
+                )
+                bands = compute_index_bands(heatmap_image)
+                heatmap_urls = {
+                    key: make_heatmap_url(bands[key], field_geom, INDEX_VIS_PARAMS[key])
+                    for key in ("ndvi", "evi", "lswi")
+                }
+                heatmap_bounds = compute_polygon_bounds(request.geometry.coordinates)
+            except Exception as exc:
+                logger.warning(f"Heatmap generation failed for {request.fieldId}: {exc}")
+
         return {
             "fieldId": request.fieldId,
             "timeSeries": time_series,
@@ -346,6 +408,9 @@ async def gee_indices(request: GEEIndicesRequest):
                 "evi": latest_point["evi"],
                 "lswi": latest_point["lswi"],
             } if latest_point else None,
+            "heatmapUrls": heatmap_urls,
+            "heatmapBounds": heatmap_bounds,
+            "heatmapDate": latest_point["date"] if latest_point else None,
             "source": "live"
         }
     except HTTPException:

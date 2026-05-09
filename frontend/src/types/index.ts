@@ -52,6 +52,10 @@ export interface Field {
   heatmapBounds?: [[number, number], [number, number]];
   /** Path prefix — tiles live at {tileBasePath}/{index}/{date}.png */
   tileBasePath?: string;
+  /** GEE-rendered heatmap thumbnail URLs, one per index (lowercase keys) */
+  heatmapUrls?: { ndvi: string; evi: string; lswi: string };
+  /** Acquisition date the heatmap was rendered from */
+  heatmapDate?: string;
   /** Acquisition schedule with cloud % */
   acquisitionDates?: AcquisitionDate[];
 }

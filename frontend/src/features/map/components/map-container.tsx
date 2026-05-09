@@ -696,11 +696,9 @@ export function MapContainer({
         const isSelected = field.id === selectedFieldId;
         const alertColor = ALERT_COLORS[field.alertLevel];
 
-        const isHeatmapVisible =
-          !!field.tileBasePath && !!field.heatmapBounds && !!selectedDate;
-        const tileUrl = isHeatmapVisible
-          ? `${field.tileBasePath}/${activeIndex.toLowerCase()}/${selectedDate}.png`
-          : null;
+        const indexKey = activeIndex.toLowerCase() as "ndvi" | "evi" | "lswi";
+        const tileUrl = field.heatmapUrls?.[indexKey] ?? null;
+        const isHeatmapVisible = !!tileUrl && !!field.heatmapBounds;
 
         const polygon = L.polygon(
           field.geometry.coordinates[0].map(
