@@ -151,7 +151,7 @@ const INDEX_LEGENDS = {
 // ─── Add Field Modal ──────────────────────────────────────────────────────────
 interface AddFieldModalProps {
   draft: NewFieldDraft;
-  onConfirm: (name: string, variety: string, sowingDate: string) => void;
+  onConfirm: (name: string, sowingDate: string) => void;
   onCancel: () => void;
   lang: "ms" | "en";
 }
@@ -163,7 +163,6 @@ function AddFieldModal({
   lang,
 }: AddFieldModalProps) {
   const [name, setName] = useState("");
-  const [variety, setVariety] = useState("MR263");
   const [sowingDate, setSowingDate] = useState(
     () => new Date().toISOString().split("T")[0],
   );
@@ -186,7 +185,7 @@ function AddFieldModal({
 
   const handleConfirm = () => {
     if (!name.trim() || !sowingDate) return;
-    onConfirm(name.trim(), variety, sowingDate);
+    onConfirm(name.trim(), sowingDate);
   };
 
   return (
@@ -290,45 +289,6 @@ function AddFieldModal({
                   : "e.g. Plot G — My Field"
               }
             />
-          </div>
-
-          {/* Variety */}
-          <div>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "6px",
-                fontSize: "0.8125rem",
-                fontFamily: "IBM Plex Sans, sans-serif",
-                color: "var(--text-secondary)",
-                fontWeight: 500,
-              }}
-            >
-              {lang === "ms" ? "Varieti Padi" : "Paddy Variety"}
-            </label>
-            <select
-              value={variety}
-              onChange={(e) => setVariety(e.target.value)}
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "9px 12px",
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                color: "var(--text-primary)",
-                fontSize: "0.875rem",
-                fontFamily: "IBM Plex Sans, sans-serif",
-                outline: "none",
-                cursor: "pointer",
-              }}
-            >
-              <option value="MR263">MR263</option>
-              <option value="MR219">MR219</option>
-              <option value="MR284">MR284</option>
-              <option value="MR308">MR308</option>
-              <option value="lain">Lain-lain / Other</option>
-            </select>
           </div>
 
           {/* Sowing Date */}
@@ -896,7 +856,7 @@ export function MapContainer({
 
   // Handle new field confirmed from modal
   const handleFieldConfirm = useCallback(
-    (name: string, variety: string, sowingDate: string) => {
+    (name: string, sowingDate: string) => {
       if (!newFieldDraft || !mapInstanceRef.current) return;
       const map = mapInstanceRef.current;
 
@@ -950,7 +910,7 @@ export function MapContainer({
           alertLevel: "healthy",
           latestIndices: { ndvi: 0.45, evi: 0.38, lswi: 0.25 },
           areaHa: undefined,
-          variety,
+          variety: "MR263",
           transplantingDate: sowingDate,
         } as any);
       }

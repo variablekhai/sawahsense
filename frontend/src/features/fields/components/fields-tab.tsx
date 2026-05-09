@@ -10,6 +10,7 @@ interface FieldsTabProps {
   onFieldSelect: (id: string) => void;
   lang: Lang;
   onAddField?: () => void;
+  canAddField?: boolean;
   isAddingField?: boolean;
   onCancelAddField?: () => void;
 }
@@ -20,6 +21,7 @@ export function FieldsTab({
   onFieldSelect,
   lang,
   onAddField,
+  canAddField = true,
   isAddingField = false,
   onCancelAddField,
 }: FieldsTabProps) {
@@ -99,6 +101,7 @@ export function FieldsTab({
         )}
         <button
           onClick={isAddingField ? onCancelAddField : onAddField}
+          disabled={!isAddingField && !canAddField}
           style={{
             width: "100%",
             padding: "8px",
@@ -110,7 +113,8 @@ export function FieldsTab({
             color: isAddingField ? "var(--accent-red)" : "var(--text-secondary)",
             fontSize: "0.8125rem",
             fontFamily: "IBM Plex Sans, sans-serif",
-            cursor: "pointer",
+            cursor: !isAddingField && !canAddField ? "not-allowed" : "pointer",
+            opacity: !isAddingField && !canAddField ? 0.55 : 1,
             transition: "all 0.15s ease",
             display: "flex",
             alignItems: "center",
@@ -118,14 +122,14 @@ export function FieldsTab({
             gap: "6px",
           }}
           onMouseEnter={(e) => {
-            if (isAddingField) return;
+            if (isAddingField || !canAddField) return;
             (e.currentTarget as HTMLButtonElement).style.borderColor =
               "var(--accent-green)";
             (e.currentTarget as HTMLButtonElement).style.color =
               "var(--accent-green)";
           }}
           onMouseLeave={(e) => {
-            if (isAddingField) return;
+            if (isAddingField || !canAddField) return;
             (e.currentTarget as HTMLButtonElement).style.borderColor =
               "var(--border)";
             (e.currentTarget as HTMLButtonElement).style.color =

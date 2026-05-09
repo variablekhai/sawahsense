@@ -89,7 +89,10 @@ sawahsense/                  ← pnpm monorepo root
 │       ├── demo-tiles/      ← Pre-rendered heatmap PNGs for demo mode
 │       └── locales/         ← i18n strings (en / ms)
 └── backend/                 ← FastAPI Python app (port 8000)
-    └── main.py              ← GEE indices, Pak Tani AI, WhatsApp API
+    ├── main.py              ← GEE indices, Pak Tani AI, WhatsApp API
+    ├── ingest.py            ← Builds the Pak Tani vector store
+    ├── knowledge_base/      ← Malaysian agronomy source documents for Pak Tani
+    └── chroma_db/           ← Local Chroma vector store used by Pak Tani
 ```
 
 ---
@@ -119,7 +122,7 @@ Most satellite agriculture tools only show NDVI. SawahSense tracks three, becaus
 | **Satellite Index Monitoring** | NDVI, EVI, LSWI computed from Sentinel-2 SR Harmonized (10 m resolution)                         |
 | **Smart Alerts**               | Stage-aware thresholds — the same LSWI value means different things at transplanting vs. heading |
 | **Heatmap Visualisation**      | Spatial per-pixel index maps overlaid on Leaflet satellite base tiles                            |
-| **Pak Tani AI**                | Claude-powered agronomist with field context injection and streaming responses                   |
+| **Pak Tani AI**                | OpenAI-powered agronomist with field context injection and grounded responses                     |
 | **Image Diagnostics**          | Upload leaf photos for disease identification directly in the chat                               |
 | **Task Management**            | AI-generated tasks with field context, due dates, and WhatsApp dispatch                          |
 | **Multilingual UI**            | Full Bahasa Melayu / English toggle (i18next)                                                    |
@@ -143,7 +146,7 @@ Most satellite agriculture tools only show NDVI. SawahSense tracks three, becaus
 
 - **Framework**: FastAPI (Python 3.10+)
 - **Package manager**: uv
-- **AI**: Anthropic Claude 3.5 Sonnet (streaming)
+- **AI**: OpenAI GPT-4.1 + text-embedding-3-small
 - **Satellite data**: Google Earth Engine Python API (earthengine-api)
 - **Messaging**: Twilio WhatsApp API
 - **Validation**: Pydantic v2
@@ -159,7 +162,7 @@ Most satellite agriculture tools only show NDVI. SawahSense tracks three, becaus
 | Service                       | Purpose                                                   | Required for                                        |
 | ----------------------------- | --------------------------------------------------------- | --------------------------------------------------- |
 | **Google Earth Engine (GEE)** | Sentinel-2 satellite data retrieval and index computation | Live satellite data (optional in demo mode)         |
-| **Anthropic Claude API**      | Pak Tani AI agronomist responses (streaming)              | Pak Tani chat feature                               |
+| **OpenAI API**               | Pak Tani embeddings and agronomist responses              | Pak Tani chat feature                               |
 | **Twilio WhatsApp API**       | Sending task alerts to farmers via WhatsApp               | WhatsApp dispatch (degrades gracefully to demo log) |
 
 All three services degrade gracefully — the app runs fully in demo mode without any API keys.
@@ -188,7 +191,7 @@ npm install -g pnpm
 
 ## Quick Start — Demo Mode (No API Keys)
 
-This is the recommended path for judges. The demo runs entirely offline using pre-computed Sekinchan Season 2/2025 satellite data, with no GEE credentials required. Pak Tani still requires an Anthropic API key (see step 4 below); everything else works without any keys.
+This is the recommended path for judges. The demo runs entirely offline using pre-computed Sekinchan Season 2/2025 satellite data, with no GEE credentials required. Pak Tani still requires an OpenAI API key (see step 4 below); everything else works without any keys.
 
 ### 1. Clone the repository
 
@@ -226,8 +229,8 @@ NEXT_PUBLIC_DEMO=true
 Create `backend/.env`:
 
 ```bash
-# Required for Pak Tani AI chat
-ANTHROPIC_API_KEY=sk-ant-...
+# Required for Pak Tani AI chat and embeddings
+OPENAI_API_KEY=sk-...
 
 # Demo mode — no real WhatsApp messages are sent (logged to console instead)
 DEMO=true
@@ -241,6 +244,14 @@ DEMO=true
 # TWILIO_ACCOUNT_SID=test
 # TWILIO_AUTH_TOKEN=test
 # TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+```
+
+If `backend/chroma_db/` does not exist yet or you update the Pak Tani source documents, rebuild the vector store:
+
+```bash
+cd backend
+python ingest.py
+cd ..
 ```
 
 ### 5. Start both services
@@ -316,7 +327,7 @@ TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
 
 | Variable                    | Required               | Description                                                      |
 | --------------------------- | ---------------------- | ---------------------------------------------------------------- |
-| `ANTHROPIC_API_KEY`         | **Yes** (for Pak Tani) | Claude API key for Pak Tani AI responses                         |
+| `OPENAI_API_KEY`            | **Yes** (for Pak Tani) | OpenAI API key for Pak Tani embeddings and responses             |
 | `GEE_PROJECT_ID`            | No (demo mode)         | Google Cloud project ID registered with Earth Engine             |
 | `GEE_SERVICE_ACCOUNT_EMAIL` | No (demo mode)         | GEE service account email                                        |
 | `GEE_PRIVATE_KEY`           | No (demo mode)         | GEE service account private key (newlines as `\n`)               |
@@ -343,7 +354,7 @@ Click any field polygon or select it from the **Fields** tab in the left sidebar
 
 ---
 
-### Step 2 — Explore Pak Tani AI (requires Anthropic API key)
+### Step 2 — Explore Pak Tani AI (requires OpenAI API key)
 
 Click the **robot icon** (Pak Tani) tab at the bottom of the sidebar.
 

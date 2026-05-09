@@ -77,6 +77,7 @@ export function Sidebar({
   const { t } = useTranslation();
   const selectedField = fields.find((f) => f.id === selectedFieldId) || null;
   const alertCount = fields.filter((f) => f.alertLevel !== "healthy").length;
+  const canAddField = fields.length < 2;
 
   return (
     <>
@@ -193,6 +194,7 @@ export function Sidebar({
               onFieldSelect={onFieldSelect}
               lang={lang}
               onAddField={onAddField}
+              canAddField={canAddField}
               isAddingField={isAddingField}
               onCancelAddField={onCancelAddField}
             />

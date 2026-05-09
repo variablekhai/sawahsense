@@ -62,6 +62,7 @@
   "fields": {
     "myFieldsCount": "{{count}} Ladang Saya",
     "addingFieldHint": "Sedang tambah ladang: lukis sempadan di peta atau batal.",
+    "maxFieldsReached": "Had ladang telah dicapai. Hanya 2 ladang dibenarkan.",
     "cancelAddingField": "Batal Tambah Ladang",
     "location": "Lokasi",
     "area": "Keluasan",

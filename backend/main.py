@@ -1,23 +1,35 @@
-import os
-import json
+import hashlib
 import logging
+import os
+import re
+from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-from dotenv import load_dotenv
+
+import chromadb
 import ee
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from openai import OpenAI
+from pydantic import BaseModel
 import twilio
 from twilio.rest import Client
-import anthropic
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+BACKEND_DIR = Path(__file__).parent
+
 load_dotenv()
+load_dotenv(BACKEND_DIR / ".env")
 
 MAX_COLLECTION_CLOUD_PCT = 80
 PRIMARY_CLEAR_CLOUD_PCT = 20
+PAK_TANI_CHROMA_PATH = BACKEND_DIR / "chroma_db"
+PAK_TANI_COLLECTION = "paddy_knowledge"
+PAK_TANI_EMBED_MODEL = "text-embedding-3-small"
+PAK_TANI_CHAT_MODEL = "gpt-4.1"
+PAK_TANI_TOP_K = 4
+PAK_TANI_FALLBACK_DIMENSIONS = 1536
 
 app = FastAPI(title="SawahSense Backend")
 
@@ -50,6 +62,10 @@ class PakTaniRequest(BaseModel):
     messages: List[MessageItem]
     lang: Optional[str] = None
 
+class PakTaniResponse(BaseModel):
+    reply: str
+    sources: List[str]
+
 class WhatsAppRequest(BaseModel):
     recipientName: str
     phoneNumber: str
@@ -60,23 +76,163 @@ class WhatsAppRequest(BaseModel):
     stage: Optional[str] = None
     dayNum: Optional[Union[int, str]] = None
 
-PAK_TANI_SYSTEM_PROMPT = """You are Pak Tani, a trusted agricultural advisor in the SawahSense app for Malaysian paddy farmers. Talk like a knowledgeable senior farmer or Jabatan Pertanian extension officer — warm, practical, never condescending.
+PAK_TANI_SYSTEM_PROMPT = """
+Kamu Pak Tani — kawan petani padi di SawahSense. Mesra, santai, macam sembang dengan jiran.
 
-You know: Malaysian paddy cultivation, NDVI/EVI/LSWI satellite indices explained simply, common pests (BPH/wereng, padi blast, sheath blight, tungro), fertiliser timing by stage (NPK, urea), MADA/KADA subsidy info, BERNAS procurement, Malaysian paddy varieties (MR219, MR263, MR284).
+Cara jawab:
+- SENTIASA jawab dalam Bahasa Malaysia, walaupun soalan dalam bahasa lain.
+- Pendek dan padat. 2–4 ayat sudah cukup. Elakkan ayat panjang berjela.
+- Nada mesra: guna "abang", "kita", "jom" bila sesuai. Senyum dalam tulisan.
+- Jawab berdasarkan KONTEKS yang diberi sahaja. Kalau tak tahu, terus terang cakap "saya tak pasti" dan minta rujuk pegawai pertanian tempatan atau MARDI.
+- Bagi langkah ringkas (boleh guna senarai bullet pendek) jika perlu.
+- Jangan mengarang nombor dos baja/racun. Jangan diagnosis penyakit tanpa pemeriksaan fizikal.
+""".strip()
 
-Rules:
-- Match the farmer's language (Malay or English) naturally
-- Always tie advice to their specific field situation — never give generic answers
-- Keep responses under 120 words — farmers are busy people in the field
-- When action is needed, say exactly what, where, and when
-- Translate satellite index terms into plain farmer language (e.g. EVI = "kehijauan kanopi")
-- If you must use jargon, explain it immediately in brackets () using very simple words.
-- Keep jargon minimal: prefer one plain term over many technical terms.
-- Example Malay: "LSWI (bacaan air dalam tanaman) rendah."
-- Example English: "BLB (leaf bacteria disease) is spreading."
-- For initial insights: lead with the most important observation, then give ONE specific action
 
-Current field context is provided as JSON in every message."""
+def normalize_api_key(value: str | None) -> str | None:
+    if not value:
+        return None
+    lowered = value.strip().lower()
+    if "your_" in lowered and lowered.endswith("_here"):
+        return None
+    return value
+
+
+pak_tani_openai_api_key = normalize_api_key(os.getenv("OPENAI_API_KEY"))
+pak_tani_oai = OpenAI(api_key=pak_tani_openai_api_key) if pak_tani_openai_api_key else None
+pak_tani_chroma = chromadb.PersistentClient(path=str(PAK_TANI_CHROMA_PATH))
+pak_tani_collection = pak_tani_chroma.get_or_create_collection(
+    name=PAK_TANI_COLLECTION,
+    metadata={"hnsw:space": "cosine"},
+)
+
+
+def pak_tani_fallback_embed(text: str) -> list[float]:
+    vector: list[float] = []
+    counter = 0
+    while len(vector) < PAK_TANI_FALLBACK_DIMENSIONS:
+        digest = hashlib.sha256(f"{text}:{counter}".encode("utf-8")).digest()
+        for byte in digest:
+            vector.append((byte / 127.5) - 1.0)
+            if len(vector) == PAK_TANI_FALLBACK_DIMENSIONS:
+                break
+        counter += 1
+    return vector
+
+
+def pak_tani_embed_query(text: str) -> list[float]:
+    if pak_tani_oai is None:
+        return pak_tani_fallback_embed(text)
+    response = pak_tani_oai.embeddings.create(
+        input=text,
+        model=PAK_TANI_EMBED_MODEL,
+    )
+    return response.data[0].embedding
+
+
+def pak_tani_format_context(context: str, question: str) -> str:
+    return (
+        "Konteks daripada pangkalan ilmu pertanian:\n"
+        f"```\n{context}\n```\n\n"
+        f"Soalan petani: {question}"
+    )
+
+
+def pak_tani_fallback_reply(question: str, context: str, sources: list[str]) -> str:
+    query_terms = set(re.findall(r"\w+", question.lower()))
+    candidate_lines = []
+    for line in context.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        score = len(query_terms & set(re.findall(r"\w+", stripped.lower())))
+        if "urea" in question.lower() and "urea" in stripped.lower():
+            score += 8
+        if "blas" in question.lower() and "blas" in stripped.lower():
+            score += 8
+        if score > 0:
+            candidate_lines.append((score, stripped))
+
+    candidate_lines.sort(key=lambda item: item[0], reverse=True)
+    short_lead = "\n".join(line for _, line in candidate_lines[:6])
+    source_note = ", ".join(sources) if sources else "pangkalan ilmu"
+    if not short_lead:
+        return (
+            "Saya belum ada konteks yang cukup untuk jawab dengan yakin. "
+            "Sila semak semula pangkalan ilmu atau rujuk pegawai pertanian tempatan."
+        )
+    return (
+        f"Berdasarkan {source_note}, perkara paling relevan untuk soalan \"{question}\" ialah:\n\n"
+        f"{short_lead}\n\n"
+        "Saya sedang berjalan dalam mod tempatan tanpa kunci API penuh, jadi jawapan ini diringkaskan terus daripada konteks yang ditemui."
+    )
+
+
+def pak_tani_build_reply(
+    question: str,
+    history: list[MessageItem],
+    context: str,
+    sources: list[str],
+) -> str:
+    if pak_tani_oai is None:
+        return pak_tani_fallback_reply(question, context, sources)
+
+    history_msgs = [{"role": item.role, "content": item.content} for item in history]
+    response = pak_tani_oai.responses.create(
+        model=PAK_TANI_CHAT_MODEL,
+        instructions=PAK_TANI_SYSTEM_PROMPT,
+        input=history_msgs + [{
+            "role": "user",
+            "content": pak_tani_format_context(context, question),
+        }],
+        max_output_tokens=1024,
+    )
+    return response.output_text
+
+
+def pak_tani_keyword_search(question: str) -> tuple[str, list[str]]:
+    payload = pak_tani_collection.get(include=["documents", "metadatas"])
+    documents = payload.get("documents", [])
+    metadatas = payload.get("metadatas", [])
+    if not documents:
+        return "", []
+
+    query_terms = set(re.findall(r"\w+", question.lower()))
+    scored: list[tuple[int, str, dict]] = []
+    for document, metadata in zip(documents, metadatas):
+        doc_terms = set(re.findall(r"\w+", document.lower()))
+        score = len(query_terms & doc_terms)
+        if question.lower() in document.lower():
+            score += 5
+        if "urea" in question.lower() and "urea" in document.lower():
+            score += 8
+        if "blas" in question.lower() and "blas" in document.lower():
+            score += 8
+        if "baja" in question.lower() and "baja" in document.lower():
+            score += 4
+        scored.append((score, document, metadata))
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+    top = [item for item in scored[:PAK_TANI_TOP_K] if item[0] > 0] or scored[:PAK_TANI_TOP_K]
+    return (
+        "\n\n---\n\n".join(item[1] for item in top),
+        list(dict.fromkeys(item[2]["source"] for item in top)),
+    )
+
+
+def pak_tani_retrieve_context(question: str) -> tuple[str, list[str]]:
+    if pak_tani_oai is None:
+        return pak_tani_keyword_search(question)
+
+    results = pak_tani_collection.query(
+        query_embeddings=[pak_tani_embed_query(question)],
+        n_results=PAK_TANI_TOP_K,
+        include=["documents", "metadatas"],
+    )
+    documents = results.get("documents", [[]])[0]
+    metadatas = results.get("metadatas", [[]])[0]
+    sources = list(dict.fromkeys(item["source"] for item in metadatas)) if metadatas else []
+    return "\n\n---\n\n".join(documents), sources
 
 def init_ee():
     try:
@@ -107,7 +263,7 @@ async def gee_indices(request: GEEIndicesRequest):
 
         field_geom = ee.Geometry.Polygon(request.geometry.coordinates)
 
-        def calculate_indices(image):
+        def per_image_feature(image):
             nir = image.select("B8").multiply(0.0001)
             red = image.select("B4").multiply(0.0001)
             blue = image.select("B2").multiply(0.0001)
@@ -116,11 +272,24 @@ async def gee_indices(request: GEEIndicesRequest):
             ndvi = nir.subtract(red).divide(nir.add(red)).rename("NDVI")
             evi = image.expression(
                 "2.5 * ((NIR - RED) / (NIR + 6 * RED - 7.5 * BLUE + 1))",
-                {"NIR": nir, "RED": red, "BLUE": blue}
+                {"NIR": nir, "RED": red, "BLUE": blue},
             ).rename("EVI")
             lswi = nir.subtract(swir).divide(nir.add(swir)).rename("LSWI")
 
-            return image.addBands([ndvi, evi, lswi])
+            stats = ndvi.addBands([evi, lswi]).reduceRegion(
+                reducer=ee.Reducer.mean(),
+                geometry=field_geom,
+                scale=20,
+                maxPixels=1e9,
+                bestEffort=True,
+            )
+            return ee.Feature(None, {
+                "date": ee.Date(image.get("system:time_start")).format("YYYY-MM-dd"),
+                "ndvi": stats.get("NDVI"),
+                "evi": stats.get("EVI"),
+                "lswi": stats.get("LSWI"),
+                "cloudPct": image.get("CLOUDY_PIXEL_PERCENTAGE"),
+            })
 
         collection = (
             ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
@@ -128,39 +297,34 @@ async def gee_indices(request: GEEIndicesRequest):
             .filterDate(request.startDate, request.endDate)
             .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", MAX_COLLECTION_CLOUD_PCT))
             .sort("system:time_start", False)
-            .map(calculate_indices)
+            .limit(16)
         )
 
-        if collection.size().getInfo() == 0:
+        feature_collection = collection.map(per_image_feature).getInfo()
+        items = feature_collection.get("features", [])
+
+        time_series = []
+        for feat in items:
+            props = feat.get("properties", {}) or {}
+            ndvi = props.get("ndvi")
+            evi = props.get("evi")
+            lswi = props.get("lswi")
+            cloud_pct = props.get("cloudPct")
+            time_series.append({
+                "date": props.get("date"),
+                "ndvi": round(ndvi, 3) if ndvi is not None else None,
+                "evi": round(evi, 3) if evi is not None else None,
+                "lswi": round(lswi, 3) if lswi is not None else None,
+                "cloudPct": round(cloud_pct) if cloud_pct is not None else 0,
+            })
+
+        if not time_series:
             return {
                 "fieldId": request.fieldId,
                 "timeSeries": [],
                 "latestIndices": None,
                 "source": "live",
             }
-
-        image_list = collection.toList(16)
-        size = image_list.size().getInfo()
-
-        time_series = []
-        for i in range(size):
-            image = ee.Image(image_list.get(i))
-            date = ee.Date(image.get("system:time_start")).format("YYYY-MM-dd").getInfo()
-            cloud_pct = image.get("CLOUDY_PIXEL_PERCENTAGE").getInfo()
-            stats = image.select(["NDVI", "EVI", "LSWI"]).reduceRegion(
-                reducer=ee.Reducer.mean(),
-                geometry=field_geom,
-                scale=10,
-                maxPixels=1e9,
-            ).getInfo()
-
-            time_series.append({
-                "date": date,
-                "ndvi": round(stats.get("NDVI"), 3) if stats.get("NDVI") is not None else None,
-                "evi": round(stats.get("EVI"), 3) if stats.get("EVI") is not None else None,
-                "lswi": round(stats.get("LSWI"), 3) if stats.get("LSWI") is not None else None,
-                "cloudPct": round(cloud_pct) if cloud_pct else 0,
-            })
 
         latest_clear = next(
             (
@@ -191,45 +355,39 @@ async def gee_indices(request: GEEIndicesRequest):
         raise HTTPException(status_code=503, detail=f"GEE unavailable: {str(e)}")
 
 
-@app.post("/api/pak-tani")
+@app.post("/api/pak-tani", response_model=PakTaniResponse)
 async def pak_tani(request: PakTaniRequest):
     try:
-        api_key = os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise HTTPException(status_code=500, detail="Anthropic API Key missing")
-            
-        client = anthropic.AsyncAnthropic(api_key=api_key)
-        
-        context_str = f"[KONTEKS LADANG: {json.dumps(request.fieldContext)}]"
-        api_messages = []
-        
         if request.mode == "initial_insight":
-            lang = (request.lang or "ms").lower()
-            if lang == "en":
-                prompt = f"{context_str}\n\nGive a brief insight on the current state of this field. Focus on the most important thing the farmer should pay attention to now. Respond in English."
-            else:
-                prompt = f"{context_str}\n\nBerikan nasihat ringkas tentang keadaan semasa ladang ini. Fokus pada perkara paling penting yang perlu perhatian petani sekarang."
-            api_messages = [{"role": "user", "content": prompt}]
+            field_name = request.fieldContext.get("fieldName", "ladang ini")
+            stage = request.fieldContext.get("stage")
+            alert = request.fieldContext.get("alert")
+            prompt_parts = [f"Beri nasihat ringkas untuk {field_name}."]
+            if stage:
+                prompt_parts.append(f"Peringkat semasa: {stage}.")
+            if alert:
+                prompt_parts.append(f"Amaran semasa: {alert}.")
+            prompt_parts.append("Fokus pada tindakan paling penting hari ini.")
+            question = " ".join(prompt_parts)
+            history: list[MessageItem] = []
         else:
-            for i, msg in enumerate(request.messages):
-                content = f"{context_str}\n\n{msg.content}" if i == 0 else msg.content
-                api_messages.append({
-                    "role": msg.role,
-                    "content": content
-                })
-                
-        async def stream_generator():
-            async with client.messages.stream(
-                model="claude-3-5-sonnet-20241022",
-                max_tokens=300,
-                system=PAK_TANI_SYSTEM_PROMPT,
-                messages=api_messages
-            ) as stream:
-                async for chunk in stream.text_stream:
-                    yield chunk
+            if not request.messages:
+                raise HTTPException(status_code=400, detail="messages is required")
+            question = request.messages[-1].content
+            history = request.messages[:-1]
 
-        return StreamingResponse(stream_generator(), media_type="text/plain")
-        
+        context, sources = pak_tani_retrieve_context(question)
+        if not context:
+            raise HTTPException(
+                status_code=500,
+                detail="Pak Tani knowledge base is empty. Run backend/ingest.py first.",
+            )
+
+        reply = pak_tani_build_reply(question, history, context, sources)
+        return PakTaniResponse(reply=reply, sources=sources)
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Pak Tani API error: {e}")
         raise HTTPException(status_code=500, detail="Pak Tani tidak dapat dihubungi sekarang.")

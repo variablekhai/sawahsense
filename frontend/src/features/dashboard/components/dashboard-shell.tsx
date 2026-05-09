@@ -64,7 +64,12 @@ const MapContainer = dynamic(
 );
 
 export function DashboardShell() {
-  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const initialBaseFields = (
+    getFieldsSortedByAlert() as unknown as Field[]
+  ).slice(0, 2);
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(
+    initialBaseFields[0]?.id ?? null,
+  );
   const [activeTab, setActiveTab] = useState<TabId>("fields");
   const [activeIndex, setActiveIndex] = useState<"NDVI" | "EVI" | "LSWI">(
     "NDVI",
@@ -97,7 +102,6 @@ export function DashboardShell() {
     setTasks((prev) => [task, ...prev]);
   }, []);
 
-  const initialBaseFields = getFieldsSortedByAlert() as unknown as Field[];
   const [baseFields, setBaseFields] = useState<Field[]>(initialBaseFields);
 
   useEffect(() => {
@@ -200,16 +204,18 @@ export function DashboardShell() {
       timeSeries: [],
     };
 
-    let newField = seedField;
+    setUserFields((prev) => [...prev, seedField]);
+    setSelectedFieldId(id);
+    setActiveTab("fields");
+
     try {
-      newField = await fetchLiveFieldData(seedField);
+      const hydratedField = await fetchLiveFieldData(seedField);
+      setUserFields((prev) =>
+        prev.map((field) => (field.id === id ? hydratedField : field)),
+      );
     } catch (err) {
       console.error("Failed to load live data for new field:", err);
     }
-
-    setUserFields((prev) => [...prev, newField]);
-    setSelectedFieldId(id);
-    setActiveTab("fields");
   }, []);
 
   useEffect(() => {

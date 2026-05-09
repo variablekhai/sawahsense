@@ -62,6 +62,7 @@
   "fields": {
     "myFieldsCount": "{{count}} My Fields",
     "addingFieldHint": "Adding field: draw a boundary on the map or cancel.",
+    "maxFieldsReached": "Field limit reached. Only 2 fields are allowed.",
     "cancelAddingField": "Cancel Adding Field",
     "location": "Location",
     "area": "Area",
