@@ -8,6 +8,10 @@ SawahSense is a precision agriculture platform that uses Sentinel-2 satellite im
 
 ---
 
+### What's New
+- Animated tour to teach user on how to navigate the website to improve accesibility and usability
+- Improve UI and UX to improve design usability
+
 ### 🏆 Quick Links for Judges
 
 - 🎥 **[Pitching & Demo Video](https://www.youtube.com/watch?v=xIClhUIvep0)**
@@ -143,7 +147,7 @@ Most satellite agriculture tools only show NDVI. SawahSense tracks three, becaus
 
 - **Framework**: FastAPI (Python 3.10+)
 - **Package manager**: uv
-- **AI**: Anthropic Claude 3.5 Sonnet (streaming)
+- **AI**: OpenAI (streaming)
 - **Satellite data**: Google Earth Engine Python API (earthengine-api)
 - **Messaging**: Twilio WhatsApp API
 - **Validation**: Pydantic v2
