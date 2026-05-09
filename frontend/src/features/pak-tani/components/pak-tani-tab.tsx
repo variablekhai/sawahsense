@@ -40,9 +40,7 @@ interface PakTaniTabProps {
   onFieldSelect: (id: string) => void;
   messages: Message[];
   loading: boolean;
-  insightLoading: boolean;
   onSend: (msg: string) => void;
-  onLoadInsight: () => void;
   lang: "ms" | "en";
 }
 
@@ -52,9 +50,7 @@ export function PakTaniTab({
   onFieldSelect,
   messages,
   loading,
-  insightLoading,
   onSend,
-  onLoadInsight,
   lang,
 }: PakTaniTabProps) {
   const [input, setInput] = useState("");
@@ -79,11 +75,6 @@ export function PakTaniTab({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  // Auto-load insight when field changes
-  useEffect(() => {
-    if (selectedField) onLoadInsight();
-  }, [selectedField?.id]);
 
   const stageResult = selectedField
     ? getCurrentStage(selectedField.transplantingDate)
@@ -350,38 +341,6 @@ export function PakTaniTab({
           </div>
         )}
 
-        {selectedField && insightLoading && messages.length === 0 && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "16px 0",
-            }}
-          >
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "var(--accent-green)",
-                animation: "pulse-dot 1.2s ease-in-out infinite",
-              }}
-            />
-            <span
-              style={{
-                fontSize: "0.8125rem",
-                color: "var(--text-secondary)",
-                fontFamily: "IBM Plex Sans, sans-serif",
-              }}
-            >
-              {lang === "ms"
-                ? "Pak Tani sedang membaca data ladang anda..."
-                : "Pak Tani is reading your field data..."}
-            </span>
-          </div>
-        )}
-
         {messages.map((msg, i) => (
           <div key={i} style={{ marginBottom: "16px" }}>
             {msg.role === "assistant" ? (
@@ -487,7 +446,6 @@ export function PakTaniTab({
         {/* Suggested questions */}
         {selectedField &&
           !loading &&
-          messages.length > 0 &&
           suggestedQs.length > 0 && (
             <div style={{ marginTop: "8px" }}>
               <p

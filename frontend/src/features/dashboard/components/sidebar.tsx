@@ -26,9 +26,7 @@ interface SidebarProps {
   onTabChange?: (tab: TabId) => void;
   pakTaniMessages?: Message[];
   pakTaniLoading?: boolean;
-  pakTaniInsightLoading?: boolean;
   onPakTaniSend?: (msg: string) => void;
-  onLoadInsight?: () => void;
   onAddField?: () => void;
   isAddingField?: boolean;
   onCancelAddField?: () => void;
@@ -62,9 +60,7 @@ export function Sidebar({
   onTabChange,
   pakTaniMessages = [],
   pakTaniLoading = false,
-  pakTaniInsightLoading = false,
   onPakTaniSend,
-  onLoadInsight,
   onAddField,
   isAddingField = false,
   onCancelAddField,
@@ -221,9 +217,7 @@ export function Sidebar({
               onFieldSelect={onFieldSelect}
               messages={pakTaniMessages}
               loading={pakTaniLoading}
-              insightLoading={pakTaniInsightLoading}
               onSend={onPakTaniSend || (() => {})}
-              onLoadInsight={onLoadInsight || (() => {})}
               lang={lang}
             />
           )}

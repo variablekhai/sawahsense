@@ -104,8 +104,6 @@ export function DashboardShell() {
   const {
     messages: pakTaniMessages,
     loading: pakTaniLoading,
-    insightLoading: pakTaniInsightLoading,
-    loadFieldInsight,
     sendMessage: pakTaniSend,
     clearConversation,
   } = usePakTani(handleAddTask);
@@ -133,21 +131,9 @@ export function DashboardShell() {
     [fields],
   );
 
-  const handleLoadInsight = useCallback(() => {
-    if (selectedField) {
-      loadFieldInsight(selectedField, lang);
-    }
-  }, [lang, loadFieldInsight, selectedField]);
-
-  const handleTabChange = useCallback(
-    (tab: TabId) => {
-      setActiveTab(tab);
-      if (tab === "pakTani" && selectedField) {
-        loadFieldInsight(selectedField, lang);
-      }
-    },
-    [lang, loadFieldInsight, selectedField],
-  );
+  const handleTabChange = useCallback((tab: TabId) => {
+    setActiveTab(tab);
+  }, []);
 
   const { startTour } = useAppTour({
     onTabChange: handleTabChange,
@@ -166,10 +152,7 @@ export function DashboardShell() {
 
   const handleOpenFullPanel = useCallback(() => {
     setActiveTab("pakTani");
-    if (selectedField) {
-      loadFieldInsight(selectedField, lang);
-    }
-  }, [lang, loadFieldInsight, selectedField]);
+  }, []);
 
   const handleFieldAdd = useCallback((draft: Partial<Field>) => {
     const id = `user_${Date.now()}`;
@@ -246,9 +229,7 @@ export function DashboardShell() {
         onTabChange={handleTabChange}
         pakTaniMessages={pakTaniMessages}
         pakTaniLoading={pakTaniLoading}
-        pakTaniInsightLoading={pakTaniInsightLoading}
         onPakTaniSend={handlePakTaniSend}
-        onLoadInsight={handleLoadInsight}
         onAddField={() => startDrawingRef.current?.()}
         isAddingField={isAddingField}
         onCancelAddField={() => cancelDrawingRef.current?.()}
@@ -309,7 +290,7 @@ export function DashboardShell() {
                   pakTaniMessages as Array<{ role: string; content: string }>
                 ).find((message) => message.role === "assistant")?.content || null
               }
-              loading={pakTaniInsightLoading}
+              loading={false}
               onDismiss={() => setAmbientField(null)}
               onOpenFullPanel={handleOpenFullPanel}
               lang={lang}
