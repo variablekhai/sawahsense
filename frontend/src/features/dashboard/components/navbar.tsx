@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Bell, ChevronRight, HelpCircle, Menu } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NavbarProps {
   selectedFieldName?: string | null;
@@ -25,6 +26,7 @@ export function Navbar({
 }: NavbarProps) {
   const { t } = useTranslation();
   const isMalay = lang === "ms";
+  const isMobile = useIsMobile();
 
   return (
     <nav
@@ -123,9 +125,10 @@ export function Navbar({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "6px",
-              padding: "4px 10px",
-              borderRadius: "20px",
+              justifyContent: "center",
+              gap: isMobile ? 0 : "6px",
+              padding: isMobile ? "6px" : "4px 10px",
+              borderRadius: isMobile ? "50%" : "20px",
               border: "1px solid var(--border)",
               background: "var(--bg-surface)",
               color: "var(--text-secondary)",
@@ -135,6 +138,8 @@ export function Navbar({
               cursor: "pointer",
               transition: "all 0.15s ease",
               letterSpacing: "0.01em",
+              width: isMobile ? 28 : "auto",
+              height: isMobile ? 28 : "auto",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.color =
@@ -149,8 +154,8 @@ export function Navbar({
                 "var(--border)";
             }}
           >
-            <HelpCircle size={13} />
-            <span>{t("tour.startButton")}</span>
+            <HelpCircle size={isMobile ? 15 : 13} />
+            {!isMobile && <span>{t("tour.startButton")}</span>}
           </button>
         )}
 
@@ -158,9 +163,10 @@ export function Navbar({
         <button
           data-tour="lang-toggle"
           onClick={onLangToggle}
+          title={isMalay ? "Bahasa Melayu" : "English"}
           style={{
-            padding: "4px 8px",
-            borderRadius: "20px",
+            padding: isMobile ? "6px" : "4px 8px",
+            borderRadius: isMobile ? "50%" : "20px",
             border: "1px solid var(--border)",
             background: "var(--bg-surface)",
             color: "var(--text-secondary)",
@@ -172,7 +178,10 @@ export function Navbar({
             letterSpacing: "0.03em",
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            justifyContent: "center",
+            gap: isMobile ? 0 : "8px",
+            width: isMobile ? 28 : "auto",
+            height: isMobile ? 28 : "auto",
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.color =
@@ -187,7 +196,10 @@ export function Navbar({
               "var(--border)";
           }}
         >
-          <span aria-hidden="true">
+          <span
+            aria-hidden="true"
+            style={{ display: "flex", alignItems: "center" }}
+          >
             {isMalay ? (
               <Image
                 src="/locales/ms/malay.png"
@@ -204,7 +216,7 @@ export function Navbar({
               />
             )}
           </span>
-          <span>{isMalay ? "Bahasa Melayu" : "English"}</span>
+          {!isMobile && <span>{isMalay ? "Bahasa Melayu" : "English"}</span>}
         </button>
 
         {/* Notification bell — opens alerts sidebar */}
